@@ -1,0 +1,21 @@
+origem,destino,tipo_conexao,justificativa,peso
+REC,SSA,regional,malha Nordeste: corredor litoral Pernambuco-Bahia,1.0
+SSA,FOR,regional,malha Nordeste: eixo Salvador-Fortaleza,1.0
+FOR,NAT,regional,malha Nordeste: ligação Ceará-Rio Grande do Norte,1.0
+NAT,JPA,regional,malha Nordeste: Paraíba-RN curtas distâncias,1.0
+JPA,THE,regional,malha Nordeste: interior Piauí-João Pessoa,1.0
+GRU,CGH,regional,malha Sudeste: dois aeroportos da mesma região metropolitana SP,1.0
+CGH,GIG,regional,malha Sudeste: eixo Rio-São Paulo,1.0
+GIG,CNF,regional,malha Sudeste: Rio-BH,1.0
+CNF,VIX,regional,malha Sudeste: Minas-Espírito Santo,1.0
+BSB,GYN,regional,malha Centro-Oeste: Distrito Federal-Goiânia,1.0
+CWB,FLN,regional,malha Sul: Paraná-Santa Catarina,1.0
+FLN,POA,regional,malha Sul: SC-RS,1.0
+MAO,BEL,regional,malha Norte: Amazonas-Pará,1.0
+BEL,PVH,regional,malha Norte: Pará-Rondônia,1.0
+PVH,RBR,regional,malha Norte: eixo Acre-Rondônia,1.0
+REC,GRU,hub,conexão Nordeste-Sudeste via hub nacional,2.0
+GRU,BSB,hub,eixo mercado SP-Brasília,2.0
+GRU,CWB,hub,conexão Sudeste-Sul via hub internacional,2.0
+BSB,MAO,hub,conexão Centro-Oeste-Norte via capital federal,2.0
+POA,GRU,curta_distancia,ligação Sul-Sudeste por hub (RS-SP),1.5
