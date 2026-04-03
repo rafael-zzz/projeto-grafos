@@ -1,3 +1,4 @@
+import Edge 
 class Node: 
     def init(self, iata, name, city, value, region):
         self.iata = iata
