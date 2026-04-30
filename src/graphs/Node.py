@@ -1,6 +1,7 @@
-import Edge 
+from graphs.Edge import Edge
+   
 class Node: 
-    def init(self, iata, name, city, value, region):
+    def __init__(self, iata, name, city, value, region):
         self.iata = iata
         self.name = name
         self.city = city
