@@ -1,10 +1,10 @@
 import sys
 import os
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root_dir = os.path.join(current_dir, '..')
-sys.path.append(os.path.abspath(root_dir))
+raiz_do_projeto = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+pasta_src = os.path.join(raiz_do_projeto, 'src')
+sys.path.append(pasta_src)
 
 from graphs.Graph import Graph
 from graphs.algorithms import Dijkstra

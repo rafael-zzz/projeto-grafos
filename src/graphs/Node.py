@@ -1,4 +1,4 @@
-from Edge import Edge
+from graphs.Edge import Edge
    
 class Node: 
     def __init__(self, iata, name, city, value, region):

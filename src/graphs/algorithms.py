@@ -1,4 +1,4 @@
-from Graph import Graph
+from graphs.Graph import Graph
 #retorna um int e uma lista
 def Dijkstra(grafo:Graph, origem, destino):
     if origem.iata not in grafo.nodes or destino.iata not in grafo.nodes:
