@@ -24,3 +24,25 @@ def breadth_first_search(
                 queue.append(connection.destination)
 
     return visit_order, layers
+
+
+def depth_first_search(
+    graph: GraphProtocol, origin: str
+) -> tuple[list[str], dict[str, str | None]]:
+    if not graph.has_node(origin):
+        raise ValueError(f"Unknown node: {origin}")
+
+    visited: set[str] = set()
+    visit_order: list[str] = []
+    predecessors: dict[str, str | None] = {origin: None}
+
+    def _visit(node: str) -> None:
+        visited.add(node)
+        visit_order.append(node)
+        for connection in graph.neighbors(node):
+            if connection.destination not in visited:
+                predecessors[connection.destination] = node
+                _visit(connection.destination)
+
+    _visit(origin)
+    return visit_order, predecessors
