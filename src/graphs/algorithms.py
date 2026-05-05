@@ -1,42 +1,87 @@
 from graphs.Graph import Graph
-#retorna um int e uma lista
-def Dijkstra(grafo:Graph, origem, destino):
-    if origem.iata not in grafo.nodes or destino.iata not in grafo.nodes:
+
+
+def DFS(graph: Graph, origin_iata=None):
+    color = {iata: "white" for iata in graph.nodes}
+    disc = {}
+    fin = {}
+    edge_types = []
+    order = []
+    has_cycle = False
+    time = [0]
+
+    def visit(node):
+        nonlocal has_cycle
+        color[node.iata] = "gray"
+        time[0] += 1
+        disc[node.iata] = time[0]
+        order.append(node.iata)
+        for edge in node.edges:
+            nb = edge.destination
+            if color[nb.iata] == "white":
+                edge_types.append((node.iata, nb.iata, "tree"))
+                visit(nb)
+            elif color[nb.iata] == "gray":
+                edge_types.append((node.iata, nb.iata, "back"))
+                has_cycle = True
+            else:
+                if disc[node.iata] < disc[nb.iata]:
+                    edge_types.append((node.iata, nb.iata, "forward"))
+                else:
+                    edge_types.append((node.iata, nb.iata, "cross"))
+        color[node.iata] = "black"
+        time[0] += 1
+        fin[node.iata] = time[0]
+
+    start_nodes = (
+        [graph.nodes[origin_iata]]
+        if origin_iata and origin_iata in graph.nodes
+        else list(graph.nodes.values())
+    )
+    for node in start_nodes:
+        if color[node.iata] == "white":
+            visit(node)
+
+    return order, edge_types, has_cycle
+
+
+def Dijkstra(graph: Graph, origin, destination):
+    if origin.iata not in graph.nodes or destination.iata not in graph.nodes:
         return float('inf'), []
-    distancias = {}
-    predecessores = {}
-    naovisitadas = []
-    caminho = []
+    distances = {}
+    predecessors = {}
+    unvisited = []
+    path = []
 
-    for node in grafo.nodes.values():
-        distancias[node.iata] = float('inf')
-        naovisitadas.append(node)
-    
-    distancias[origem.iata] = 0
+    for node in graph.nodes.values():
+        distances[node.iata] = float('inf')
+        unvisited.append(node)
 
-    while naovisitadas:
-        no_atual = min(naovisitadas, key=lambda node: distancias[node.iata])
-        naovisitadas.remove(no_atual)
+    distances[origin.iata] = 0
 
-        if no_atual == destino:
+    while unvisited:
+        current_node = min(unvisited, key=lambda node: distances[node.iata])
+        unvisited.remove(current_node)
+
+        if current_node == destination:
             break
 
-        for vizinho in no_atual.edges:
-            nova_distancia = distancias[no_atual.iata] + vizinho.weight
-            if distancias[vizinho.destination.iata] > nova_distancia:
-                distancias[vizinho.destination.iata] = nova_distancia
-                predecessores[vizinho.destination.iata] = no_atual.iata
+        for neighbor in current_node.edges:
+            new_distance = distances[current_node.iata] + neighbor.weight
+            if distances[neighbor.destination.iata] > new_distance:
+                distances[neighbor.destination.iata] = new_distance
+                predecessors[neighbor.destination.iata] = current_node.iata
 
-    if destino.iata not in predecessores and origem.iata != destino.iata:
+    if destination.iata not in predecessors and origin.iata != destination.iata:
         return float('inf'), []
 
-    atual = destino.iata
+    current = destination.iata
     while True:
-        caminho.append(atual)
-        if atual == origem.iata:
+        path.append(current)
+        if current == origin.iata:
             break
-        atual = predecessores[atual]
-        
-    caminho.reverse()
+        current = predecessors[current]
 
-    return distancias[destino.iata], caminho
+    path.reverse()
+
+    return distances[destination.iata], path
