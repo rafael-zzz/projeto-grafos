@@ -1,0 +1,39 @@
+# --- Python (Backend & Algoritmos) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# --- Frontend (Next.js) ---
+# Baseado no gitignore do seu projeto
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.pnp
+frontend/.pnp.*
+
+# Logs de depuração do frontend
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnpm-debug.log*
+
+# Variáveis de ambiente e segredos
+frontend/.env*
+*.pem
+
+# --- Editores e IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- Outros ---
+projeto-grafos.zip

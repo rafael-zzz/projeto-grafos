@@ -16,6 +16,7 @@ def Dijkstra(grafo:Graph, origem, destino):
         distancias[node.iata] = float('inf')
         naovisitadas.append(node)
 
+    
     distancias[origem.iata] = 0
 
     while naovisitadas:
