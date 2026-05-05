@@ -1,15 +1,33 @@
+from collections import deque
 from graphs.Graph import Graph
+
+
+def BFS(graph: Graph, origin):
+    visited = set()
+    levels = {}
+    order = []
+    queue = deque()
+
+    queue.append(origin)
+    visited.add(origin.iata)
+    levels[origin.iata] = 0
+
+    while queue:
+        node = queue.popleft()
+        order.append(node.iata)
+        for edge in node.edges:
+            neighbor = edge.destination
+            if neighbor.iata not in visited:
+                visited.add(neighbor.iata)
+                levels[neighbor.iata] = levels[node.iata] + 1
+                queue.append(neighbor)
+
+    return order, levels
 
 
 def Dijkstra(graph: Graph, origin, destination):
     if origin.iata not in graph.nodes or destination.iata not in graph.nodes:
         return float('inf'), []
-
-    for node in graph.nodes.values():
-        for edge in node.edges:
-            if edge.weight < 0:
-                raise ValueError(f"Negative weight on edge {node.iata} -> {edge.destination.iata}: {edge.weight}")
-
     distances = {}
     predecessors = {}
     unvisited = []
