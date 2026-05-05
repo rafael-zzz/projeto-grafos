@@ -3,7 +3,7 @@ import csv
 import os
 from typing import Any
 
-from metrics_calculator import calculate_base_metrics
+from graphs.metrics_calculator import calculate_base_metrics
 
 def export_global_metrics_json(nodes: list[Any] | set[Any], edges: list[Any] | set[Any], output_path: str = "out/global.json") -> None:
 
