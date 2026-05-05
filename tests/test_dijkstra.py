@@ -1,15 +1,16 @@
-import sys
-import os
+import pytest
+from graphs.Graph import Graph
+from graphs.algorithms import Dijkstra
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 src_path = os.path.join(project_root, 'src')
 sys.path.append(src_path)
 
-from graphs.Graph import Graph
-from graphs.algorithms import Dijkstra
-from graphs.Node import Node
 
-g = Graph()
+def test_prefers_indirect_cheaper_path(airport_graph):
+    dist, route = Dijkstra(airport_graph, airport_graph.nodes["GRU"], airport_graph.nodes["REC"])
+    assert dist == 15
+    assert route == ["GRU", "SSA", "REC"]
 
 g.add_node("GRU", "Guarulhos", "São Paulo", 100, "Sudeste")
 g.add_node("SSA", "Dep. Luís Eduardo Magalhães", "Salvador", 80, "Nordeste")
