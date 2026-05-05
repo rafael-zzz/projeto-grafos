@@ -1,42 +1,49 @@
 from graphs.Graph import Graph
-#retorna um int e uma lista
-def Dijkstra(grafo:Graph, origem, destino):
-    if origem.iata not in grafo.nodes or destino.iata not in grafo.nodes:
+
+
+def Dijkstra(graph: Graph, origin, destination):
+    if origin.iata not in graph.nodes or destination.iata not in graph.nodes:
         return float('inf'), []
-    distancias = {}
-    predecessores = {}
-    naovisitadas = []
-    caminho = []
 
-    for node in grafo.nodes.values():
-        distancias[node.iata] = float('inf')
-        naovisitadas.append(node)
-    
-    distancias[origem.iata] = 0
+    for node in graph.nodes.values():
+        for edge in node.edges:
+            if edge.weight < 0:
+                raise ValueError(f"Negative weight on edge {node.iata} -> {edge.destination.iata}: {edge.weight}")
 
-    while naovisitadas:
-        no_atual = min(naovisitadas, key=lambda node: distancias[node.iata])
-        naovisitadas.remove(no_atual)
+    distances = {}
+    predecessors = {}
+    unvisited = []
+    path = []
 
-        if no_atual == destino:
+    for node in graph.nodes.values():
+        distances[node.iata] = float('inf')
+        unvisited.append(node)
+
+    distances[origin.iata] = 0
+
+    while unvisited:
+        current_node = min(unvisited, key=lambda node: distances[node.iata])
+        unvisited.remove(current_node)
+
+        if current_node == destination:
             break
 
-        for vizinho in no_atual.edges:
-            nova_distancia = distancias[no_atual.iata] + vizinho.weight
-            if distancias[vizinho.destination.iata] > nova_distancia:
-                distancias[vizinho.destination.iata] = nova_distancia
-                predecessores[vizinho.destination.iata] = no_atual.iata
+        for neighbor in current_node.edges:
+            new_distance = distances[current_node.iata] + neighbor.weight
+            if distances[neighbor.destination.iata] > new_distance:
+                distances[neighbor.destination.iata] = new_distance
+                predecessors[neighbor.destination.iata] = current_node.iata
 
-    if destino.iata not in predecessores and origem.iata != destino.iata:
+    if destination.iata not in predecessors and origin.iata != destination.iata:
         return float('inf'), []
 
-    atual = destino.iata
+    current = destination.iata
     while True:
-        caminho.append(atual)
-        if atual == origem.iata:
+        path.append(current)
+        if current == origin.iata:
             break
-        atual = predecessores[atual]
-        
-    caminho.reverse()
+        current = predecessors[current]
 
-    return distancias[destino.iata], caminho
+    path.reverse()
+
+    return distances[destination.iata], path
