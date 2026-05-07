@@ -39,4 +39,5 @@ frontend/.env*
 projeto-grafos.zip
 
 # Arquivos gerados — rode python3 src/cli.py solve para recriar
-out/
+out/*
+!out/.gitkeep
