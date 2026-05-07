@@ -10,4 +10,4 @@ def calculate_base_metrics(node: list[Any] | set[Any], edges: list[Any] | set[An
     else:
         density = (2 * size) / (order * (order - 1))
         
-    return order, size, density ## retorna a ordem, o tamanho e a densidade do grafo/subgrafo
+    return order, size, density

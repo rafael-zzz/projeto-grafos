@@ -28,6 +28,14 @@ def export_regions_metrics_json(regions_data: dict[str, tuple[list[Any] | set[An
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(result, f, indent=4, ensure_ascii=False)
         
+def export_degrees_csv(degrees: dict[str, int], output_path: str = "out/graus.csv") -> None:
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    rows = sorted(degrees.items(), key=lambda x: x[1], reverse=True)
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["aeroporto", "grau"])
+        writer.writerows(rows)
+
 def export_ego_metrics(ego_data: dict[str, tuple[int, list[Any] | set[Any], list[Any] | set[Any]]], csv_path: str = "out/ego_aeroportos.csv", json_path: str = "out/ego_aeroportos.json") -> None:
 
     os.makedirs(os.path.dirname(csv_path), exist_ok=True)
