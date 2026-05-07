@@ -13,6 +13,10 @@ export type GraphEdge = {
   key: string;
   source: string;
   target: string;
-  attributes: { weight: number };
+  attributes: {
+    weight: number;
+    tipo_conexao: string;
+    justificativa: string;
+  };
 };
 export type GraphData = { nodes: GraphNode[]; edges: GraphEdge[] };

@@ -101,6 +101,27 @@ export function BrazilAirportMap() {
   const [graph, setGraph] = useState<GraphData | null>(null);
   const [tooltip, setTooltip] = useState<Tooltip>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [panelWidth, setPanelWidth] = useState(288);
+  const isResizing = useRef(false);
+
+  function startResize(e: React.MouseEvent) {
+    isResizing.current = true;
+    const startX = e.clientX;
+    const startW = panelWidth;
+    e.preventDefault();
+
+    const onMove = (ev: MouseEvent) => {
+      const newW = Math.min(Math.max(startW + (startX - ev.clientX), 288), 700);
+      setPanelWidth(newW);
+    };
+    const onUp = () => {
+      isResizing.current = false;
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
   const [tr, setTr] = useState<Transform>({ x: 0, y: 0, scale: 1 });
   const trRef = useRef<Transform>({ x: 0, y: 0, scale: 1 });
   const svgRef = useRef<SVGSVGElement>(null);
@@ -319,11 +340,15 @@ export function BrazilAirportMap() {
             <motion.div
               key={selectedKey}
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 288, opacity: 1 }}
+              animate={{ width: panelWidth, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.28, ease: "easeInOut" }}
-              className="shrink-0 overflow-hidden"
+              transition={isResizing.current ? { duration: 0 } : { duration: 0.28, ease: "easeInOut" }}
+              className="relative shrink-0 overflow-hidden"
             >
+              <div
+                className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400"
+                onMouseDown={startResize}
+              />
               <AirportPanel
                 nodeKey={selectedKey}
                 graph={graph}

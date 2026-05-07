@@ -6,11 +6,10 @@ class Graph:
 
     def add_node(self, iata, name, city, value, region):
         if iata not in self.nodes:
-            new_node = Node(iata, name, city, value, region)
-            self.nodes[iata] = new_node
+            self.nodes[iata] = Node(iata, name, city, value, region)
 
-    def add_edge(self, origin_iata, destination_iata,weight):
+    def add_edge(self, origin_iata, destination_iata, weight, tipo_conexao="", justificativa=""):
         if origin_iata in self.nodes and destination_iata in self.nodes:
-            origin_node = self.nodes[origin_iata]
-            destination_node = self.nodes[destination_iata]
-            origin_node.add_edge(destination_node,weight)
+            self.nodes[origin_iata].add_edge(
+                self.nodes[destination_iata], weight, tipo_conexao, justificativa
+            )

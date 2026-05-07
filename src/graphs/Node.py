@@ -1,6 +1,6 @@
 from graphs.Edge import Edge
-   
-class Node: 
+
+class Node:
     def __init__(self, iata, name, city, value, region):
         self.iata = iata
         self.name = name
@@ -9,7 +9,5 @@ class Node:
         self.region = region
         self.edges = []
 
-    def add_edge(self, destination_node, weight):
-
-        new_edge = Edge(self, destination_node, weight)
-        self.edges.append(new_edge)
+    def add_edge(self, destination_node, weight, tipo_conexao="", justificativa=""):
+        self.edges.append(Edge(self, destination_node, weight, tipo_conexao, justificativa))

@@ -18,6 +18,8 @@ type PanelEdge = {
   neighborCity: string;
   neighborRegion: string;
   weight: number;
+  tipoConexao: string;
+  justificativa: string;
   direction: "out" | "in";
 };
 
@@ -50,10 +52,10 @@ export function AirportPanel({
   for (const e of graph.edges) {
     if (e.source === nodeKey) {
       const nb = nodeMap.get(e.target);
-      if (nb) edges.push({ key: e.key, neighborKey: e.target, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, direction: "out" });
+      if (nb) edges.push({ key: e.key, neighborKey: e.target, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, tipoConexao: e.attributes.tipo_conexao, justificativa: e.attributes.justificativa, direction: "out" });
     } else if (e.target === nodeKey) {
       const nb = nodeMap.get(e.source);
-      if (nb) edges.push({ key: e.key, neighborKey: e.source, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, direction: "in" });
+      if (nb) edges.push({ key: e.key, neighborKey: e.source, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, tipoConexao: e.attributes.tipo_conexao, justificativa: e.attributes.justificativa, direction: "in" });
     }
   }
   edges.sort((a, b) => a.weight - b.weight);
@@ -107,7 +109,7 @@ export function AirportPanel({
   const { x: tx, y: ty, scale } = tr;
 
   return (
-    <div className="flex h-full w-72 shrink-0 flex-col overflow-hidden border-l border-zinc-200 bg-white">
+    <div className="flex h-full w-full flex-col overflow-hidden border-l border-zinc-200 bg-white">
       {/* Header */}
       <div className="flex items-start justify-between border-b border-zinc-100 px-4 py-3">
         <div>
@@ -204,16 +206,24 @@ export function AirportPanel({
         </p>
         <ul className="divide-y divide-zinc-50">
           {edges.map((e) => (
-            <li key={e.key} className="flex items-center gap-3 px-4 py-2">
-              <span className={`w-3 shrink-0 text-center text-xs font-bold ${e.direction === "out" ? "text-zinc-400" : "text-amber-400"}`}>
-                {e.direction === "out" ? "→" : "←"}
-              </span>
-              <span className="size-2 shrink-0 rounded-sm" style={{ backgroundColor: REGION_COLORS[e.neighborRegion] ?? "#94a3b8" }} />
-              <div className="min-w-0 flex-1 truncate">
-                <span className="text-xs font-bold text-zinc-800">{e.neighborLabel}</span>
-                <span className="ml-1 text-xs text-zinc-400">{e.neighborCity}</span>
+            <li key={e.key} className="flex flex-col gap-0.5 px-4 py-2.5">
+              <div className="flex items-center gap-3">
+                <span className={`w-3 shrink-0 text-center text-xs font-bold ${e.direction === "out" ? "text-zinc-400" : "text-amber-400"}`}>
+                  {e.direction === "out" ? "→" : "←"}
+                </span>
+                <span className="size-2 shrink-0 rounded-sm" style={{ backgroundColor: REGION_COLORS[e.neighborRegion] ?? "#94a3b8" }} />
+                <div className="min-w-0 flex-1 truncate">
+                  <span className="text-xs font-bold text-zinc-800">{e.neighborLabel}</span>
+                  <span className="ml-1 text-xs text-zinc-400">{e.neighborCity}</span>
+                </div>
+                <span className="shrink-0 text-xs tabular-nums text-zinc-400">{e.weight.toFixed(3)}</span>
               </div>
-              <span className="shrink-0 text-xs tabular-nums text-zinc-400">{e.weight.toFixed(3)}</span>
+              <div className="flex items-center gap-2 pl-6">
+                <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
+                  {e.tipoConexao}
+                </span>
+                <span className="truncate text-[10px] text-zinc-400">{e.justificativa}</span>
+              </div>
             </li>
           ))}
         </ul>

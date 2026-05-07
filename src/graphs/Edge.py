@@ -1,13 +1,7 @@
 class Edge:
-    def __init__(self,origin,destination,weight):
-        self.destination = destination
+    def __init__(self, origin, destination, weight, tipo_conexao="", justificativa=""):
         self.origin = origin
+        self.destination = destination
         self.weight = weight
-        self.justification = "mesma região" if origin == destination else "regiões diferentes"
-        self.type = "regional" if origin == destination else "inter-regional"
-
-class Graph:
-    def init(self):
-        self.nodes = {}
-
-
+        self.tipo_conexao = tipo_conexao
+        self.justificativa = justificativa

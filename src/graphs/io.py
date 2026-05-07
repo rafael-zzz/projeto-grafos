@@ -61,8 +61,10 @@ def load_graph(
             origin = row["origem"].strip()
             dest = row["destino"].strip()
             weight = float(row["peso"])
-            graph.add_edge(origin, dest, weight)
-            graph.add_edge(dest, origin, weight)
+            tipo = row.get("tipo_conexao", "").strip()
+            justificativa = row.get("justificativa", "").strip()
+            graph.add_edge(origin, dest, weight, tipo, justificativa)
+            graph.add_edge(dest, origin, weight, tipo, justificativa)
 
     validate_graph(graph)
     return graph
@@ -114,6 +116,8 @@ def export_graph_json(
                 "target": pair[1],
                 "attributes": {
                     "weight": edge.weight,
+                    "tipo_conexao": edge.tipo_conexao,
+                    "justificativa": edge.justificativa,
                     "size": 1,
                     "color": "#94a3b8",
                 },
