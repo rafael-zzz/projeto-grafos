@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BRAZIL_MACRO_REGION,
   MACRO_REGION_CHOROPLETH_COLORS,
+  MACRO_REGION_LABEL,
   STATE_ID_TO_MACRO_REGION,
 } from "@/lib/brazil/brazilMacroRegions";
 import type { GraphData } from "@/lib/graph/types";
 import { AirportPanel } from "@/components/AirportPanel";
+import { RegionPanel } from "@/components/RegionPanel";
 
 // ─── GeoJSON ─────────────────────────────────────────────────────────────────
 type GeoRing = number[][];
@@ -71,6 +73,13 @@ function stateColor(f: GeoFeature): string {
   return MACRO_REGION_CHOROPLETH_COLORS[STATE_ID_TO_MACRO_REGION[id]] ?? "#e4e4e7";
 }
 
+function featureRegion(f: GeoFeature): string | null {
+  const id = IBGE_TO_STATE[String(f.properties.codarea ?? "")];
+  if (!id) return null;
+  const code = STATE_ID_TO_MACRO_REGION[id];
+  return MACRO_REGION_LABEL[code] ?? null;
+}
+
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const REGION_COLORS: Record<string, string> = {
   Norte:          MACRO_REGION_CHOROPLETH_COLORS[BRAZIL_MACRO_REGION.NORTE],
@@ -92,7 +101,6 @@ function toSVG(svg: SVGSVGElement, clientX: number, clientY: number): [number, n
 // ─── Component ────────────────────────────────────────────────────────────────
 type Tooltip = { x: number; y: number; label: string; city: string; region: string } | null;
 type Transform = { x: number; y: number; scale: number };
-
 const IBGE_GEO_URL =
   "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?intrarregiao=UF&formato=application/vnd.geo+json&resolucao=5";
 
@@ -101,8 +109,10 @@ export function BrazilAirportMap() {
   const [graph, setGraph] = useState<GraphData | null>(null);
   const [tooltip, setTooltip] = useState<Tooltip>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [panelWidth, setPanelWidth] = useState(288);
   const isResizing = useRef(false);
+  const didDrag = useRef(false);
 
   function startResize(e: React.MouseEvent) {
     isResizing.current = true;
@@ -161,12 +171,14 @@ export function BrazilAirportMap() {
 
   const onMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
+    didDrag.current = false;
     const [sx, sy] = toSVG(svgRef.current!, e.clientX, e.clientY);
     drag.current = { sx, sy, tx: trRef.current.x, ty: trRef.current.y };
   }, []);
 
   const onMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!drag.current) return;
+    didDrag.current = true;
     const d = drag.current;
     const [cx, cy] = toSVG(svgRef.current!, e.clientX, e.clientY);
     applyTransform((prev) => ({
@@ -195,6 +207,11 @@ export function BrazilAirportMap() {
     ])
   );
 
+  const globalDensity =
+    graph.nodes.length < 2
+      ? 0
+      : (2 * graph.edges.length) / (graph.nodes.length * (graph.nodes.length - 1));
+
   const { x: tx, y: ty, scale } = tr;
 
   return (
@@ -202,7 +219,7 @@ export function BrazilAirportMap() {
       <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3">
         <h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
         <p className="mt-0.5 text-xs text-zinc-500">
-          {graph.nodes.length} aeroportos · {graph.edges.length} conexões · dados: janeiro/2026
+          ordem {graph.nodes.length} · tamanho {graph.edges.length} · densidade {globalDensity.toFixed(4)} · dados: janeiro/2026
         </p>
       </header>
 
@@ -226,16 +243,26 @@ export function BrazilAirportMap() {
               </marker>
             </defs>
             <g transform={`translate(${tx},${ty}) scale(${scale})`}>
-              {geo.features.map((f, i) => (
-                <path
-                  key={i}
-                  d={featureToD(f)}
-                  fill={stateColor(f)}
-                  fillOpacity={0.25}
-                  stroke="#fff"
-                  strokeWidth={1 / scale}
-                />
-              ))}
+              {geo.features.map((f, i) => {
+                const fRegion = featureRegion(f);
+                const isSelectedRegion = fRegion === selectedRegion;
+                return (
+                  <path
+                    key={i}
+                    d={featureToD(f)}
+                    fill={stateColor(f)}
+                    fillOpacity={selectedRegion ? (isSelectedRegion ? 0.55 : 0.08) : 0.25}
+                    stroke="#fff"
+                    strokeWidth={1 / scale}
+                    className={fRegion ? "cursor-pointer" : undefined}
+                    onClick={() => {
+                      if (didDrag.current || !fRegion) return;
+                      setSelectedRegion((prev) => (prev === fRegion ? null : fRegion));
+                      setSelectedKey(null);
+                    }}
+                  />
+                );
+              })}
 
               {graph.edges.map((e) => {
                 const s = nodeMap.get(e.source);
@@ -271,7 +298,7 @@ export function BrazilAirportMap() {
                     key={n.key}
                     className="cursor-pointer"
                     onMouseDown={(e) => e.stopPropagation()}
-                    onClick={() => setSelectedKey(n.key === selectedKey ? null : n.key)}
+                    onClick={() => { setSelectedKey(n.key === selectedKey ? null : n.key); setSelectedRegion(null); }}
                     onMouseEnter={(e) => {
                       const rect = svgRef.current!.getBoundingClientRect();
                       setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, label: nd.label, city: nd.city, region: nd.region });
@@ -336,9 +363,9 @@ export function BrazilAirportMap() {
 
         {/* Detail panel — animated slide-in from right */}
         <AnimatePresence>
-          {selectedKey && (
+          {(selectedKey || selectedRegion) && (
             <motion.div
-              key={selectedKey}
+              key={selectedKey ?? `region-${selectedRegion}`}
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: panelWidth, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
@@ -349,11 +376,19 @@ export function BrazilAirportMap() {
                 className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400"
                 onMouseDown={startResize}
               />
-              <AirportPanel
-                nodeKey={selectedKey}
-                graph={graph}
-                onClose={() => setSelectedKey(null)}
-              />
+              {selectedKey ? (
+                <AirportPanel
+                  nodeKey={selectedKey}
+                  graph={graph}
+                  onClose={() => setSelectedKey(null)}
+                />
+              ) : (
+                <RegionPanel
+                  region={selectedRegion!}
+                  graph={graph}
+                  onClose={() => setSelectedRegion(null)}
+                />
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -362,9 +397,21 @@ export function BrazilAirportMap() {
       <footer className="shrink-0 border-t border-zinc-200 bg-white px-4 py-2.5">
         <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
           {Object.entries(REGION_COLORS).map(([region, color]) => (
-            <li key={region} className="flex items-center gap-1.5">
-              <span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: color }} />
-              <span className="text-xs text-zinc-600">{region}</span>
+            <li
+              key={region}
+              className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-zinc-100"
+              onClick={() => {
+                setSelectedRegion((prev) => (prev === region ? null : region));
+                setSelectedKey(null);
+              }}
+            >
+              <span
+                className="size-2.5 shrink-0 rounded-sm"
+                style={{ backgroundColor: color, opacity: selectedRegion && selectedRegion !== region ? 0.3 : 1 }}
+              />
+              <span className={`text-xs ${selectedRegion === region ? "font-semibold text-zinc-800" : "text-zinc-600"}`}>
+                {region}
+              </span>
             </li>
           ))}
         </ul>

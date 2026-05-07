@@ -101,6 +101,14 @@ export function AirportPanel({
 
   const onMouseUp = useCallback(() => { drag.current = null; }, []);
 
+  const neighborKeys = new Set(edges.map((e) => e.neighborKey));
+  const vEgo = new Set([nodeKey, ...neighborKeys]);
+  const eEgoSize = graph.edges.filter(
+    (e) => vEgo.has(e.source) && vEgo.has(e.target)
+  ).length;
+  const egoOrder = vEgo.size;
+  const egoDensity = egoOrder < 2 ? 0 : (2 * eEgoSize) / (egoOrder * (egoOrder - 1));
+
   const nodeColor = REGION_COLORS[node.attributes.region] ?? "#94a3b8";
   const outCount = edges.filter((e) => e.direction === "out").length;
   const inCount = edges.filter((e) => e.direction === "in").length;
@@ -122,6 +130,20 @@ export function AirportPanel({
             <span className="font-medium text-zinc-700">{outCount}</span> saídas ·{" "}
             <span className="font-medium text-zinc-700">{inCount}</span> chegadas
           </p>
+          <div className="mt-2 flex gap-3 border-t border-zinc-100 pt-2">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-zinc-400">Ordem ego</span>
+              <span className="text-sm font-bold text-zinc-800">{egoOrder}</span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-zinc-400">Tamanho ego</span>
+              <span className="text-sm font-bold text-zinc-800">{eEgoSize}</span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-zinc-400">Densidade ego</span>
+              <span className="text-sm font-bold text-zinc-800">{egoDensity.toFixed(4)}</span>
+            </div>
+          </div>
         </div>
         <button
           onClick={onClose}
