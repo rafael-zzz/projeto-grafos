@@ -1,5 +1,5 @@
-import { BrazilAnyMap } from "@/components/BrazilAnyMap";
+import { GraphViewClient } from "@/components/GraphViewClient";
 
 export default function Home() {
-    return <BrazilAnyMap className="w-full" />;
+  return <GraphViewClient />;
 }
