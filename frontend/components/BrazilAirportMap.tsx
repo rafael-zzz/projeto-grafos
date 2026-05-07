@@ -241,6 +241,11 @@ export function BrazilAirportMap() {
               <marker id="arrow" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
                 <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8" fillOpacity="0.7" />
               </marker>
+              {Object.entries(REGION_COLORS).map(([region, color]) => (
+                <marker key={region} id={`arrow-${region.replace(/\W/g, "")}`} viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 Z" fill={color} />
+                </marker>
+              ))}
             </defs>
             <g transform={`translate(${tx},${ty}) scale(${scale})`}>
               {geo.features.map((f, i) => {
@@ -274,16 +279,18 @@ export function BrazilAirportMap() {
                 if (dist === 0) return null;
                 const r = 6 / scale;
                 const inRegion = !selectedRegion || (s.region === selectedRegion && d.region === selectedRegion);
+                const edgeColor = selectedRegion && inRegion ? (REGION_COLORS[selectedRegion] ?? "#94a3b8") : "#94a3b8";
+                const markerId = selectedRegion && inRegion ? `arrow-${selectedRegion.replace(/\W/g, "")}` : "arrow";
                 return (
                   <line
                     key={e.key}
                     x1={s.pos[0]} y1={s.pos[1]}
                     x2={d.pos[0] - (dx / dist) * r}
                     y2={d.pos[1] - (dy / dist) * r}
-                    stroke="#94a3b8"
-                    strokeWidth={1 / scale}
-                    strokeOpacity={selectedRegion ? (inRegion ? 0.7 : 0.04) : 0.45}
-                    markerEnd="url(#arrow)"
+                    stroke={edgeColor}
+                    strokeWidth={selectedRegion && inRegion ? 1.5 / scale : 1 / scale}
+                    strokeOpacity={selectedRegion ? (inRegion ? 0.8 : 0.04) : 0.45}
+                    markerEnd={`url(#${markerId})`}
                   />
                 );
               })}
