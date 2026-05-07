@@ -141,7 +141,7 @@ export function AirportPanel({
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] uppercase tracking-wide text-zinc-400">Densidade ego</span>
-              <span className="text-sm font-bold text-zinc-800">{egoDensity.toFixed(4)}</span>
+              <span className="text-sm font-bold text-zinc-800">{egoDensity.toFixed(6)}</span>
             </div>
           </div>
         </div>

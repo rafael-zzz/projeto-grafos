@@ -219,7 +219,7 @@ export function BrazilAirportMap() {
       <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3">
         <h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
         <p className="mt-0.5 text-xs text-zinc-500">
-          ordem {graph.nodes.length} · tamanho {graph.edges.length} · densidade {globalDensity.toFixed(4)} · dados: janeiro/2026
+          ordem {graph.nodes.length} · tamanho {graph.edges.length} · densidade {globalDensity.toFixed(6)} · dados: janeiro/2026
         </p>
       </header>
 
@@ -273,6 +273,7 @@ export function BrazilAirportMap() {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist === 0) return null;
                 const r = 6 / scale;
+                const inRegion = !selectedRegion || (s.region === selectedRegion && d.region === selectedRegion);
                 return (
                   <line
                     key={e.key}
@@ -281,7 +282,7 @@ export function BrazilAirportMap() {
                     y2={d.pos[1] - (dy / dist) * r}
                     stroke="#94a3b8"
                     strokeWidth={1 / scale}
-                    strokeOpacity={0.45}
+                    strokeOpacity={selectedRegion ? (inRegion ? 0.7 : 0.04) : 0.45}
                     markerEnd="url(#arrow)"
                   />
                 );
@@ -293,10 +294,12 @@ export function BrazilAirportMap() {
                 const [px, py] = nd.pos;
                 const r = 6 / scale;
                 const isSelected = n.key === selectedKey;
+                const inRegion = !selectedRegion || nd.region === selectedRegion;
                 return (
                   <g
                     key={n.key}
                     className="cursor-pointer"
+                    opacity={selectedRegion ? (inRegion ? 1 : 0.15) : 1}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={() => { setSelectedKey(n.key === selectedKey ? null : n.key); setSelectedRegion(null); }}
                     onMouseEnter={(e) => {

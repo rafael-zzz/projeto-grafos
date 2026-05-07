@@ -71,7 +71,7 @@ export function RegionPanel({
           </div>
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] uppercase tracking-wide text-zinc-400">Densidade</span>
-            <span className="text-xl font-bold text-zinc-800">{density.toFixed(4)}</span>
+            <span className="text-xl font-bold text-zinc-800">{density.toFixed(6)}</span>
           </div>
         </div>
       </div>
