@@ -1,6 +1,7 @@
 "use client";
 
 import type { GraphData } from "@/lib/graph/types";
+import { DensityDetail } from "@/components/DensityDetail";
 
 const REGION_COLORS: Record<string, string> = {
   Norte:          "#0d9488",
@@ -69,11 +70,7 @@ export function RegionPanel({
             <span className="text-[10px] uppercase tracking-wide text-zinc-400">Tamanho</span>
             <span className="text-xl font-bold text-zinc-800">{size}</span>
           </div>
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] uppercase tracking-wide text-zinc-400">Densidade</span>
-            <span className="text-xl font-bold text-zinc-800">{density.toFixed(6)}</span>
-          </div>
-        </div>
+          <DensityDetail size={size} order={order} density={density} />        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">

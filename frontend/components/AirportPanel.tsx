@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { GraphData } from "@/lib/graph/types";
+import { DensityDetail } from "@/components/DensityDetail";
 
 const REGION_COLORS: Record<string, string> = {
   Norte:          "#0d9488",
@@ -139,10 +140,7 @@ export function AirportPanel({
               <span className="text-[10px] uppercase tracking-wide text-zinc-400">Tamanho ego</span>
               <span className="text-sm font-bold text-zinc-800">{eEgoSize}</span>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] uppercase tracking-wide text-zinc-400">Densidade ego</span>
-              <span className="text-sm font-bold text-zinc-800">{egoDensity.toFixed(6)}</span>
-            </div>
+            <DensityDetail size={eEgoSize} order={egoOrder} density={egoDensity} />
           </div>
         </div>
         <button
