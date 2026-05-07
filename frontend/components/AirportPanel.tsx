@@ -92,8 +92,9 @@ export function AirportPanel({
 
   const onMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!drag.current) return;
+    const d = drag.current;
     const [cx, cy] = toSVG(svgRef.current!, e.clientX, e.clientY);
-    apply((p) => ({ ...p, x: drag.current!.tx + (cx - drag.current!.sx), y: drag.current!.ty + (cy - drag.current!.sy) }));
+    apply((p) => ({ ...p, x: d.tx + (cx - d.sx), y: d.ty + (cy - d.sy) }));
   }, []);
 
   const onMouseUp = useCallback(() => { drag.current = null; }, []);

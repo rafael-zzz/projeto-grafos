@@ -146,11 +146,12 @@ export function BrazilAirportMap() {
 
   const onMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!drag.current) return;
+    const d = drag.current;
     const [cx, cy] = toSVG(svgRef.current!, e.clientX, e.clientY);
     applyTransform((prev) => ({
       ...prev,
-      x: drag.current!.tx + (cx - drag.current!.sx),
-      y: drag.current!.ty + (cy - drag.current!.sy),
+      x: d.tx + (cx - d.sx),
+      y: d.ty + (cy - d.sy),
     }));
   }, []);
 
