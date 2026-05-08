@@ -54,15 +54,15 @@ SBBR,SBBE,interregional,124
 SBBR,SBBR,intrarregional,18
 SBBR,SBBV,interregional,52
 SBBR,SBCF,interregional,238
-SBBR,SBCG,interregional,62
+SBBR,SBCG,intrarregional,62
 SBBR,SBCT,interregional,123
-SBBR,SBCY,interregional,136
+SBBR,SBCY,intrarregional,136
 SBBR,SBEG,interregional,145
 SBBR,SBFI,interregional,31
 SBBR,SBFL,interregional,92
 SBBR,SBFZ,interregional,168
 SBBR,SBGL,interregional,194
-SBBR,SBGO,interregional,128
+SBBR,SBGO,intrarregional,128
 SBBR,SBGR,interregional,393
 SBBR,SBIL,interregional,1
 SBBR,SBIZ,interregional,31
@@ -76,11 +76,11 @@ SBBR,SBPA,interregional,153
 SBBR,SBPJ,interregional,64
 SBBR,SBPS,interregional,70
 SBBR,SBPV,interregional,62
-SBBR,SBRB,interregional,63
+SBBR,SBRB,intrarregional,63
 SBBR,SBRF,interregional,263
 SBBR,SBRJ,interregional,376
 SBBR,SBSG,interregional,93
-SBBR,SBSI,interregional,31
+SBBR,SBSI,intrarregional,31
 SBBR,SBSL,interregional,76
 SBBR,SBSN,interregional,31
 SBBR,SBSP,interregional,568
@@ -161,7 +161,7 @@ SBCF,SNPD,intrarregional,13
 SBCF,SNSS,intrarregional,13
 SBCF,SNTO,intrarregional,13
 SBCF,SNZR,intrarregional,13
-SBCG,SBBR,interregional,61
+SBCG,SBBR,intrarregional,61
 SBCG,SBCG,intrarregional,2
 SBCG,SBCT,interregional,1
 SBCG,SBCY,intrarregional,1
@@ -208,7 +208,7 @@ SBCT,SSVL,interregional,13
 SBCX,SBGR,interregional,32
 SBCX,SBKP,interregional,30
 SBCX,SBSP,interregional,31
-SBCY,SBBR,interregional,139
+SBCY,SBBR,intrarregional,139
 SBCY,SBBW,intrarregional,13
 SBCY,SBCF,interregional,53
 SBCY,SBCG,intrarregional,1
@@ -344,7 +344,7 @@ SBGL,SBSR,intrarregional,1
 SBGL,SBSV,interregional,318
 SBGL,SBVT,intrarregional,210
 SBGL,SDCO,intrarregional,1
-SBGO,SBBR,interregional,127
+SBGO,SBBR,intrarregional,127
 SBGO,SBCF,interregional,102
 SBGO,SBGL,interregional,52
 SBGO,SBGO,intrarregional,3
@@ -672,7 +672,7 @@ SBPV,SBCY,interregional,18
 SBPV,SBEG,intrarregional,49
 SBPV,SBGR,interregional,31
 SBPV,SBMK,interregional,1
-SBRB,SBBR,interregional,62
+SBRB,SBBR,intrarregional,62
 SBRB,SBCF,interregional,17
 SBRB,SBCZ,intrarregional,17
 SBRB,SBEG,interregional,14
@@ -755,7 +755,7 @@ SBSG,SBSR,interregional,9
 SBSG,SBSV,intrarregional,47
 SBSG,SBUL,interregional,9
 SBSG,SBVT,interregional,1
-SBSI,SBBR,interregional,31
+SBSI,SBBR,intrarregional,31
 SBSI,SBCT,interregional,1
 SBSI,SBCY,intrarregional,26
 SBSI,SBGR,interregional,62

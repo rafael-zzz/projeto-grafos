@@ -44,4 +44,4 @@ df = df.rename(columns={
 })
 
 # Exporta o dataset limpo
-df.to_csv('./output/cleaned.csv', sep=';', index=False)
+df.to_csv('../out/cleaned.csv', sep=';', index=False)

@@ -124,8 +124,10 @@ result = pd.DataFrame(rows)
 # Correções manuais
 correcoes = {
     'Brasília': 'Centro-Oeste',
+    'Brasilia': 'Centro-Oeste', 
     'Oiapoque': 'Norte',
-    'Guaira': 'Sul'
+    'Guaira': 'Sul',
+    'Guaíra': 'Sul'
 }
 
 for cidade, nova_regiao in correcoes.items():
@@ -143,20 +145,13 @@ extras = [
     {'icao': 'SNBA', 'cidade': 'Barreiras', 'regiao': 'Nordeste'}
 ]
 
-extras_df = pd.DataFrame(
-    extras,
-    columns=['icao', 'cidade', 'regiao']
-)
-
 extras_df = pd.DataFrame(extras)
 
 # Junta o original com os que faltam
 result = pd.concat([result, extras_df], ignore_index=True)
 
 # Remover duplicatas por ICAO caso existam
-result = result.drop_duplicates(
-    subset='icao'
-)
+result = result.drop_duplicates(subset='icao', keep='last')
 
 # Ordenar por icao
 result = result.sort_values(by='icao')
