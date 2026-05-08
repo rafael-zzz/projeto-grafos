@@ -1,0 +1,145 @@
+icao,cidade,regiao
+SBAE,Bauru,Sudeste
+SBAQ,Araraquara,Sudeste
+SBAR,Aracaju,Nordeste
+SBAT,Alta Floresta,Centro-Oeste
+SBAU,Aracatuba,Sudeste
+SBAX,Araxa,Sudeste
+SBBE,Belem,Norte
+SBBH,Belo Horizonte,Sudeste
+SBBR,Brasilia,Centro-Oeste
+SBBV,Boa Vista,Norte
+SBBW,Barra Do Garcas,Centro-Oeste
+SBBZ,Cabo Frio,Sudeste
+SBCA,Cascavel,Sul
+SBCF,Belo Horizonte,Sudeste
+SBCG,Campo Grande,Centro-Oeste
+SBCH,Chapeco,Sul
+SBCJ,Carajas,Norte
+SBCN,Caldas Novas,Centro-Oeste
+SBCT,Curitiba,Sul
+SBCX,Caxias Do Sul,Sul
+SBCY,Cuiaba,Centro-Oeste
+SBCZ,Cruzeiro Do Sul,Centro-Oeste
+SBDB,Bonito,Centro-Oeste
+SBDN,Presidente Prudente,Sudeste
+SBDO,Dourados,Centro-Oeste
+SBEG,Manaus,Norte
+SBFI,Foz Do Iguacu,Sul
+SBFL,Florianopolis,Sul
+SBFN,Fernando De Noronha,Nordeste
+SBFZ,Fortaleza,Nordeste
+SBGL,Rio De Janeiro,Sudeste
+SBGO,Goiania,Centro-Oeste
+SBGP,Gaviao Peixoto,Sudeste
+SBGR,Sao Paulo,Sudeste
+SBGV,Governador Valadares,Sudeste
+SBHT,Altamira,Norte
+SBIH,Itaituba,Norte
+SBIL,Ilheus,Nordeste
+SBIP,Ipatinga,Sudeste
+SBIZ,Imperatriz,Nordeste
+SBJA,Jaguaruna,Sul
+SBJD,Jundiai,Sudeste
+SBJE,Jijoca de Jericoacoara (Cruz),Nordeste
+SBJI,Ji-Paraná,Norte
+SBJP,Joao Pessoa,Nordeste
+SBJR,Rio De Janeiro,Sudeste
+SBJU,Juazeiro Do Norte,Nordeste
+SBJV,Joinville,Sul
+SBKG,Campina Grande,Nordeste
+SBKP,Campinas,Sudeste
+SBLE,Lencois,Nordeste
+SBLO,Londrina,Sul
+SBMA,Maraba,Norte
+SBMD,Almeirim,Norte
+SBMG,Maringa,Sul
+SBMK,Montes Claros,Sudeste
+SBML,Marilia,Sudeste
+SBMO,Maceio,Nordeste
+SBMQ,Macapa,Norte
+SBMY,Manicore,Norte
+SBNF,Navegantes,Sul
+SBNM,Santo Angelo,Sul
+SBOI,Oiapoque,Norte
+SBPA,Porto Alegre,Sul
+SBPB,Parnaiba,Nordeste
+SBPF,Passo Fundo,Sul
+SBPJ,Palmas,Norte
+SBPK,Pelotas,Sul
+SBPL,Petrolina,Nordeste
+SBPO,Ponta Porã,Centro-Oeste
+SBPP,Ponta Pora,Centro-Oeste
+SBPS,Porto Seguro,Nordeste
+SBPV,Porto Velho,Norte
+SBRB,Rio Branco,Centro-Oeste
+SBRD,Rondonópolis,Centro-Oeste
+SBRF,Recife,Nordeste
+SBRJ,Rio De Janeiro,Sudeste
+SBRP,Ribeirao Preto,Sudeste
+SBSG,São Gonçalo do Amarante,Nordeste
+SBSI,Sinop,Centro-Oeste
+SBSJ,Sao Jose Dos Campos,Sudeste
+SBSL,Sao Luis,Nordeste
+SBSM,Santa Maria,Sul
+SBSN,Santarem,Norte
+SBSO,Passo Fundo,Sul
+SBSP,Sao Paulo,Sudeste
+SBSR,Sao Jose Do Rio Preto,Sudeste
+SBSV,Salvador,Nordeste
+SBTB,Oriximina,Norte
+SBTC,Una,Nordeste
+SBTE,Teresina,Nordeste
+SBTF,Tefe,Norte
+SBTT,Tabatinga,Norte
+SBTU,Tucurui,Norte
+SBUA,Sao Gabriel Da Cachoeira,Norte
+SBUG,Uruguaiana,Sul
+SBUL,Uberlandia,Sudeste
+SBUR,Uberaba,Sudeste
+SBUY,Uruguaiana,Sul
+SBVC,Vitória da Conquista,Nordeste
+SBVG,Varginha,Sudeste
+SBVH,Vilhena,Norte
+SBVT,Vitoria,Sudeste
+SBZM,Juiz De Fora,Sudeste
+SDCO,Sorocaba,Sudeste
+SDLO,Cairu,Nordeste
+SDOW,Ourilandia Do Norte,Norte
+SDSC,Sao Carlos,Sudeste
+SIMK,Franca,Sudeste
+SJZA,Tapes,Sul
+SNAB,Araripina,Nordeste
+SNBA,Barreiras,Nordeste
+SNBR,Barreiras,Nordeste
+SNCL,Cairu,Nordeste
+SNCP,Carutapera,Nordeste
+SNDV,Divinopolis,Sudeste
+SNEB,Paragominas,Norte
+SNGI,Guanambi,Nordeste
+SNGN,Garanhuns,Nordeste
+SNHS,Serra Talhada,Nordeste
+SNJM,Manhuacu,Sudeste
+SNLN,Linhares,Sudeste
+SNMZ,Porto De Moz,Norte
+SNPD,Patos De Minas,Sudeste
+SNRU,Caruaru,Nordeste
+SNSM,Salinopolis,Norte
+SNSS,Salinas,Sudeste
+SNTO,Teofilo Otoni,Sudeste
+SNTS,Patos,Nordeste
+SNVS,Breves,Norte
+SNZR,Paracatu,Sudeste
+SSGY,Guaira,Sul
+SSKW,Cacoal,Norte
+SSOU,Aripuanã,Centro-Oeste
+SSUM,Umuarama,Sul
+SSUV,Uniao Da Vitoria,Sul
+SSVL,Caarapo,Centro-Oeste
+SWBC,Barcelos,Norte
+SWBR,Borba,Norte
+SWGN,Araguaina,Norte
+SWLB,Labrea,Norte
+SWMW,Maues,Norte
+SWPI,Parintins,Norte
+SWYN,Apui,Norte
