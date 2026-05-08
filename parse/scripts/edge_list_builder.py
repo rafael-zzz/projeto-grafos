@@ -1,4 +1,5 @@
 import pandas as pd
+import math
 
 ## Criação do dataset que vai ser utilizado no frontend para arestas
 
@@ -25,15 +26,7 @@ df['tipo_conexao'] = df.apply(classify_connection, axis=1)
 
 # Conta adjacências (vôos)
 adjacency_counts = (
-    df.groupby(
-        [
-            'origem',
-            'destino',
-            'tipo_conexao'
-        ]
-    )
-    .size()
-    .reset_index(name='quantidade')
+    df.groupby(['origem', 'destino', 'tipo_conexao']).size().reset_index(name='quantidade')
 )
 
 # Renomeia colunas
@@ -43,6 +36,11 @@ adjacency_counts.columns = [
     'tipo_conexao',
     'quantidade'
 ]
+
+# Calcula peso
+adjacency_counts['peso'] = adjacency_counts['quantidade'].apply(
+    lambda freq: round(1 / math.log(freq + 1), 4)
+)
 
 # Exporta a contagem e tipo de adjacência
 adjacency_counts.to_csv('./output/edges.csv', index=False)
