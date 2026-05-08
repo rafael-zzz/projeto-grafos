@@ -4,7 +4,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from graphs.io import load_graph
+from graphs.io import load_graph, export_routes, load_routes
 from graphs.algorithms import BFS, DFS, Dijkstra
 from solve import solve
 
@@ -62,11 +62,43 @@ def cmd_dijkstra(args):
         print(f"  Custo: {dist:.4f}")
 
 
+def cmd_routes(_args):
+    try:
+        graph = load_graph()
+        routes = load_routes()
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        print("Make sure to create the file 'data/rotas.csv' with columns 'origem' and 'destino'.")
+        sys.exit(1)
+
+    results = []
+    print(f"Calculating {len(routes)} routes...")
+
+    for origin, destination in routes:
+        if origin not in graph.nodes or destination not in graph.nodes:
+            print(f"  Warning: Pair {origin} -> {destination} ignored (airport not found in graph).")
+            continue
+
+        dist, path = Dijkstra(graph, graph.nodes[origin], graph.nodes[destination])
+
+        path_str = " -> ".join(path) if dist != float("inf") else "No path"
+
+        results.append({
+            'origem': origin,
+            'destino': destination,
+            'custo': f"{dist:.4f}" if dist != float("inf") else "inf",
+            'caminho': path_str
+        })
+
+    export_routes(results)
+
+
 COMMANDS = {
     "solve": (cmd_solve, []),
     "bfs": (cmd_bfs, None),
     "dfs": (cmd_dfs, None),
     "dijkstra": (cmd_dijkstra, None),
+    "routes": (cmd_routes, []),
 }
 
 
