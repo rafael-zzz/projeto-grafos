@@ -150,3 +150,25 @@ def validate_graph(graph: Graph) -> None:
     disconnected = set(graph.nodes) - visited
     if disconnected:
         raise ValueError(f"Graph is not connected. Disconnected nodes: {disconnected}")
+
+
+def load_routes(filepath: str = "data/rotas.csv") -> list[tuple[str, str]]:
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"Routes file not found: {filepath}")
+
+    routes = []
+    with open(filepath, mode="r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            origin = row["origem"].strip().upper()
+            destination = row["destino"].strip().upper()
+            routes.append((origin, destination))
+    return routes
+
+def export_routes(results: list[dict[str, str]], filepath: str = "out/distancias_rotas.csv") -> None:
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    with open(filepath, mode="w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["origem", "destino", "custo", "caminho"])
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"Exported {len(results)} calculated routes → {filepath}")

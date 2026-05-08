@@ -29,6 +29,9 @@ python3 src/cli.py dfs
 
 # Menor caminho entre dois aeroportos (Dijkstra)
 python3 src/cli.py dijkstra RBR GIG
+
+#Menor caminho entre cinco pares de aeroportos
+python src/cli.py routes
 ```
 
 ## Frontend
