@@ -198,7 +198,7 @@ export function BrazilAirportMap() {
 
   if (!geo || !graph) {
     return (
-      <div className="flex h-dvh w-full items-center justify-center bg-zinc-50">
+      <div className="flex h-full w-full items-center justify-center bg-zinc-50">
         <p className="text-sm text-zinc-500">Carregando mapa…</p>
       </div>
     );
@@ -223,12 +223,12 @@ export function BrazilAirportMap() {
     : null;
 
   return (
-    <div className="flex h-dvh w-full flex-col bg-zinc-50">
+    <div className="flex h-full w-full flex-col bg-zinc-50">
       <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
           <p className="mt-0.5 text-xs text-zinc-500">
-            ordem {graph.nodes.length} · tamanho {graph.edges.length} · densidade {globalDensity.toFixed(6)} · dados: janeiro/2026
+            Ordem: {graph.nodes.length} · Tamanho: {graph.edges.length} · Densidade: {globalDensity.toFixed(6)}
           </p>
         </div>
         <button
@@ -303,7 +303,7 @@ export function BrazilAirportMap() {
                 const markerId = inDijkstra ? "arrow-dijkstra" : selectedRegion && inRegion ? `arrow-${selectedRegion.replace(/\W/g, "")}` : "arrow";
                 const opacity = dijkstraEdges
                   ? (inDijkstra ? 0.95 : 0)
-                  : selectedRegion ? (inRegion ? 0.8 : 0.04) : 0.45;
+                  : selectedRegion ? (inRegion ? 0.8 : 0) : 0.45;
                 return (
                   <line
                     key={e.key}
