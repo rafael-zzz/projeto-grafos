@@ -11,6 +11,8 @@ import {
 import type { GraphData } from "@/lib/graph/types";
 import { AirportPanel } from "@/components/AirportPanel";
 import { RegionPanel } from "@/components/RegionPanel";
+import { DijkstraPanel } from "@/components/DijkstraPanel";
+import { type DijkstraResult, getHighlightedEdges } from "@/lib/graph/dijkstra";
 
 // ─── GeoJSON ─────────────────────────────────────────────────────────────────
 type GeoRing = number[][];
@@ -110,6 +112,8 @@ export function BrazilAirportMap() {
   const [tooltip, setTooltip] = useState<Tooltip>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [showDijkstra, setShowDijkstra] = useState(false);
+  const [dijkstraResult, setDijkstraResult] = useState<DijkstraResult | null>(null);
   const [panelWidth, setPanelWidth] = useState(288);
   const isResizing = useRef(false);
   const didDrag = useRef(false);
@@ -214,13 +218,25 @@ export function BrazilAirportMap() {
 
   const { x: tx, y: ty, scale } = tr;
 
+  const dijkstraEdges = dijkstraResult
+    ? getHighlightedEdges(dijkstraResult.prev, dijkstraResult.destKey)
+    : null;
+
   return (
     <div className="flex h-dvh w-full flex-col bg-zinc-50">
-      <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3">
-        <h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
-        <p className="mt-0.5 text-xs text-zinc-500">
-          ordem {graph.nodes.length} · tamanho {graph.edges.length} · densidade {globalDensity.toFixed(6)} · dados: janeiro/2026
-        </p>
+      <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3 flex items-center justify-between">
+        <div>
+          <h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            ordem {graph.nodes.length} · tamanho {graph.edges.length} · densidade {globalDensity.toFixed(6)} · dados: janeiro/2026
+          </p>
+        </div>
+        <button
+          onClick={() => { setShowDijkstra((v) => !v); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
+          className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDijkstra ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+        >
+          Dijkstra
+        </button>
       </header>
 
       <div className="flex min-h-0 flex-1">
@@ -246,6 +262,9 @@ export function BrazilAirportMap() {
                   <path d="M0,0 L6,3 L0,6 Z" fill={color} />
                 </marker>
               ))}
+              <marker id="arrow-dijkstra" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b" />
+              </marker>
             </defs>
             <g transform={`translate(${tx},${ty}) scale(${scale})`}>
               {geo.features.map((f, i) => {
@@ -278,9 +297,13 @@ export function BrazilAirportMap() {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist === 0) return null;
                 const r = 6 / scale;
+                const inDijkstra = dijkstraEdges ? dijkstraEdges.has(e.key) : null;
                 const inRegion = !selectedRegion || (s.region === selectedRegion && d.region === selectedRegion);
-                const edgeColor = selectedRegion && inRegion ? (REGION_COLORS[selectedRegion] ?? "#94a3b8") : "#94a3b8";
-                const markerId = selectedRegion && inRegion ? `arrow-${selectedRegion.replace(/\W/g, "")}` : "arrow";
+                const edgeColor = inDijkstra ? "#f59e0b" : selectedRegion && inRegion ? (REGION_COLORS[selectedRegion] ?? "#94a3b8") : "#94a3b8";
+                const markerId = inDijkstra ? "arrow-dijkstra" : selectedRegion && inRegion ? `arrow-${selectedRegion.replace(/\W/g, "")}` : "arrow";
+                const opacity = dijkstraEdges
+                  ? (inDijkstra ? 0.95 : 0)
+                  : selectedRegion ? (inRegion ? 0.8 : 0.04) : 0.45;
                 return (
                   <line
                     key={e.key}
@@ -288,9 +311,9 @@ export function BrazilAirportMap() {
                     x2={d.pos[0] - (dx / dist) * r}
                     y2={d.pos[1] - (dy / dist) * r}
                     stroke={edgeColor}
-                    strokeWidth={selectedRegion && inRegion ? 1.5 / scale : 1 / scale}
-                    strokeOpacity={selectedRegion ? (inRegion ? 0.8 : 0.04) : 0.45}
-                    markerEnd={`url(#${markerId})`}
+                    strokeWidth={inDijkstra ? 2 / scale : selectedRegion && inRegion ? 1.5 / scale : 1 / scale}
+                    strokeOpacity={opacity}
+                    markerEnd={opacity > 0 ? `url(#${markerId})` : undefined}
                   />
                 );
               })}
@@ -302,11 +325,16 @@ export function BrazilAirportMap() {
                 const r = 6 / scale;
                 const isSelected = n.key === selectedKey;
                 const inRegion = !selectedRegion || nd.region === selectedRegion;
+                const inDijkstraPath = dijkstraResult
+                  ? (n.key === dijkstraResult.originKey || n.key === dijkstraResult.destKey ||
+                     (dijkstraEdges ? [...dijkstraEdges].some(k => k.startsWith(`${n.key}-`) || k.endsWith(`-${n.key}`)) : false))
+                  : null;
                 return (
                   <g
                     key={n.key}
                     className="cursor-pointer"
-                    opacity={selectedRegion ? (inRegion ? 1 : 0.15) : 1}
+                    opacity={dijkstraEdges ? (inDijkstraPath ? 1 : 0) : selectedRegion ? (inRegion ? 1 : 0.15) : 1}
+                    pointerEvents={dijkstraEdges && !inDijkstraPath ? "none" : "auto"}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={() => { setSelectedKey(n.key === selectedKey ? null : n.key); setSelectedRegion(null); }}
                     onMouseEnter={(e) => {
@@ -318,8 +346,8 @@ export function BrazilAirportMap() {
                     <circle
                       cx={px} cy={py} r={r}
                       fill={color}
-                      stroke={isSelected ? "#1e293b" : "#fff"}
-                      strokeWidth={isSelected ? 2 / scale : 1.5 / scale}
+                      stroke={isSelected ? "#1e293b" : inDijkstraPath ? "#f59e0b" : "#fff"}
+                      strokeWidth={isSelected ? 2 / scale : inDijkstraPath ? 2 / scale : 1.5 / scale}
                     />
                     <text
                       x={px} y={py - r - 2 / scale}
@@ -373,9 +401,9 @@ export function BrazilAirportMap() {
 
         {/* Detail panel — animated slide-in from right */}
         <AnimatePresence>
-          {(selectedKey || selectedRegion) && (
+          {(selectedKey || selectedRegion || showDijkstra) && (
             <motion.div
-              key={selectedKey ?? `region-${selectedRegion}`}
+              key={selectedKey ?? `region-${selectedRegion}` ?? "dijkstra"}
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: panelWidth, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
@@ -386,7 +414,13 @@ export function BrazilAirportMap() {
                 className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400"
                 onMouseDown={startResize}
               />
-              {selectedKey ? (
+              {showDijkstra ? (
+                <DijkstraPanel
+                  graph={graph}
+                  onResult={(r) => setDijkstraResult(r)}
+                  onClose={() => { setShowDijkstra(false); setDijkstraResult(null); }}
+                />
+              ) : selectedKey ? (
                 <AirportPanel
                   nodeKey={selectedKey}
                   graph={graph}

@@ -4,7 +4,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from graphs.io import load_graph, export_routes, load_routes
+from graphs.io import load_graph_from_parse, export_routes, load_routes
 from graphs.algorithms import BFS, DFS, Dijkstra
 from solve import solve
 
@@ -15,10 +15,10 @@ def cmd_solve(_args):
 
 def cmd_bfs(args):
     if not args:
-        print("Uso: cli.py bfs <IATA>")
+        print("Uso: cli.py bfs <ICAO>")
         sys.exit(1)
     origin_iata = args[0].upper()
-    graph = load_graph()
+    graph, _ = load_graph_from_parse()
     if origin_iata not in graph.nodes:
         print(f"Aeroporto '{origin_iata}' nao encontrado.")
         sys.exit(1)
@@ -30,7 +30,7 @@ def cmd_bfs(args):
 
 def cmd_dfs(args):
     origin_iata = args[0].upper() if args else None
-    graph = load_graph()
+    graph, _ = load_graph_from_parse()
     if origin_iata and origin_iata not in graph.nodes:
         print(f"Aeroporto '{origin_iata}' nao encontrado.")
         sys.exit(1)
@@ -48,7 +48,7 @@ def cmd_dijkstra(args):
         print("Uso: cli.py dijkstra <ORIG> <DEST>")
         sys.exit(1)
     orig_iata, dest_iata = args[0].upper(), args[1].upper()
-    graph = load_graph()
+    graph, _ = load_graph_from_parse()
     for iata in [orig_iata, dest_iata]:
         if iata not in graph.nodes:
             print(f"Aeroporto '{iata}' nao encontrado.")
@@ -64,7 +64,7 @@ def cmd_dijkstra(args):
 
 def cmd_routes(_args):
     try:
-        graph = load_graph()
+        graph, _ = load_graph_from_parse()
         routes = load_routes()
     except FileNotFoundError as e:
         print(f"Error: {e}")

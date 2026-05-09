@@ -136,14 +136,16 @@ for cidade, nova_regiao in correcoes.items():
 
 # Adicionando os aeroportos que faltam
 extras_icaos = [
-    ('SBDO', 'Dourados',     'Centro-Oeste', -22.20,  -54.93),
-    ('SBJI', 'Ji-Paraná',    'Norte',        -10.87,  -61.85),
-    ('SBPO', 'Ponta Porã',   'Centro-Oeste', -22.55,  -55.70),
-    ('SBRD', 'Rondonópolis', 'Centro-Oeste', -16.59,  -54.72),
-    ('SBSI', 'Sinop',        'Centro-Oeste', -11.88,  -55.58),
-    ('SBSO', 'Passo Fundo',  'Sul',          -28.24,  -52.33),
-    ('SBUY', 'Uruguaiana',   'Sul',          -29.78,  -57.04),
-    ('SNBA', 'Barreiras',    'Nordeste',     -12.08,  -45.01),
+    ('SBDO', 'Dourados',       'Centro-Oeste', -22.20,  -54.93),
+    ('SBJI', 'Ji-Paraná',      'Norte',        -10.87,  -61.85),
+    ('SBPO', 'Ponta Porã',     'Centro-Oeste', -22.55,  -55.70),
+    ('SBRD', 'Rondonópolis',   'Centro-Oeste', -16.59,  -54.72),
+    ('SBSI', 'Sinop',          'Centro-Oeste', -11.88,  -55.58),
+    ('SBSO', 'Passo Fundo',    'Sul',          -28.24,  -52.33),
+    ('SBUY', 'Uruguaiana',     'Sul',          -29.78,  -57.04),
+    ('SNBA', 'Barreiras',      'Nordeste',     -12.08,  -45.01),
+    ('SBRB', 'Rio Branco',     'Norte',        -9.86889, -67.89806),
+    ('SBCZ', 'Cruzeiro Do Sul','Norte',        -7.59991, -72.7695),
 ]
 
 extras = []
