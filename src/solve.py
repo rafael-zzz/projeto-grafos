@@ -3,8 +3,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from graphs.io import load_graph_from_parse, export_graph_json_from_parse
-from graphs.metrics_exporter import (
+from inout import load_graph, export_graph_json
+from metrics.metrics_exporter import (
     export_global_metrics_json,
     export_regions_metrics_json,
     export_ego_metrics,
@@ -15,9 +15,9 @@ from graphs.metrics_exporter import (
 def _undirected_edges(graph):
     seen: set[tuple[str, str]] = set()
     edges = []
-    for iata, node in graph.nodes.items():
+    for icao, node in graph.nodes.items():
         for edge in node.edges:
-            pair = tuple(sorted([iata, edge.destination.iata]))
+            pair = tuple(sorted([icao, edge.destination.icao]))
             if pair not in seen:
                 seen.add(pair)
                 edges.append(edge)
@@ -26,17 +26,17 @@ def _undirected_edges(graph):
 
 def _build_regions_data(graph):
     region_nodes: dict[str, set[str]] = {}
-    for iata, node in graph.nodes.items():
-        region_nodes.setdefault(node.region, set()).add(iata)
+    for icao, node in graph.nodes.items():
+        region_nodes.setdefault(node.region, set()).add(icao)
 
     regions_data = {}
     for region, node_keys in region_nodes.items():
         seen: set[tuple[str, str]] = set()
         region_edges = []
-        for iata in node_keys:
-            for edge in graph.nodes[iata].edges:
-                if edge.destination.iata in node_keys:
-                    pair = tuple(sorted([iata, edge.destination.iata]))
+        for icao in node_keys:
+            for edge in graph.nodes[icao].edges:
+                if edge.destination.icao in node_keys:
+                    pair = tuple(sorted([icao, edge.destination.icao]))
                     if pair not in seen:
                         seen.add(pair)
                         region_edges.append(edge)
@@ -46,29 +46,29 @@ def _build_regions_data(graph):
 
 def _build_ego_data(graph):
     ego_data = {}
-    for iata, node in graph.nodes.items():
-        neighbors = {edge.destination.iata for edge in node.edges}
-        v_ego = {iata} | neighbors
+    for icao, node in graph.nodes.items():
+        neighbors = {edge.destination.icao for edge in node.edges}
+        v_ego = {icao} | neighbors
         seen: set[tuple[str, str]] = set()
         e_ego = []
-        for n_iata in v_ego:
-            for edge in graph.nodes[n_iata].edges:
-                if edge.destination.iata in v_ego:
-                    pair = tuple(sorted([n_iata, edge.destination.iata]))
+        for n_icao in v_ego:
+            for edge in graph.nodes[n_icao].edges:
+                if edge.destination.icao in v_ego:
+                    pair = tuple(sorted([n_icao, edge.destination.icao]))
                     if pair not in seen:
                         seen.add(pair)
                         e_ego.append(edge)
-        ego_data[iata] = (len(node.edges), list(v_ego), e_ego)
+        ego_data[icao] = (len(node.edges), list(v_ego), e_ego)
     return ego_data
 
 
 def solve():
-    graph, coords = load_graph_from_parse()
+    graph = load_graph()
 
     all_nodes = list(graph.nodes.values())
     all_edges = _undirected_edges(graph)
 
-    export_graph_json_from_parse(graph, coords)
+    export_graph_json(graph)
     print(f"Metricas globais: {len(all_nodes)} nos, {len(all_edges)} arestas")
 
     export_global_metrics_json(all_nodes, all_edges)
@@ -79,12 +79,8 @@ def solve():
     ego_data = _build_ego_data(graph)
     export_ego_metrics(ego_data)
 
-    degrees = {iata: len(node.edges) for iata, node in graph.nodes.items()}
+    degrees = {icao: len(node.edges) for icao, node in graph.nodes.items()}
     export_degrees_csv(degrees)
-
-    print("Arquivos gerados em out/:")
-    for f in sorted(os.listdir("out")):
-        print(f"  {f}")
 
 
 if __name__ == "__main__":
