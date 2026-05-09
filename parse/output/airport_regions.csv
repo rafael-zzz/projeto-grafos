@@ -1,145 +1,145 @@
-icao,cidade,regiao
-SBAE,Bauru,Sudeste
-SBAQ,Araraquara,Sudeste
-SBAR,Aracaju,Nordeste
-SBAT,Alta Floresta,Centro-Oeste
-SBAU,Aracatuba,Sudeste
-SBAX,Araxa,Sudeste
-SBBE,Belem,Norte
-SBBH,Belo Horizonte,Sudeste
-SBBR,Brasilia,Centro-Oeste
-SBBV,Boa Vista,Norte
-SBBW,Barra Do Garcas,Centro-Oeste
-SBBZ,Cabo Frio,Sudeste
-SBCA,Cascavel,Sul
-SBCF,Belo Horizonte,Sudeste
-SBCG,Campo Grande,Centro-Oeste
-SBCH,Chapeco,Sul
-SBCJ,Carajas,Norte
-SBCN,Caldas Novas,Centro-Oeste
-SBCT,Curitiba,Sul
-SBCX,Caxias Do Sul,Sul
-SBCY,Cuiaba,Centro-Oeste
-SBCZ,Cruzeiro Do Sul,Centro-Oeste
-SBDB,Bonito,Centro-Oeste
-SBDN,Presidente Prudente,Sudeste
-SBDO,Dourados,Centro-Oeste
-SBEG,Manaus,Norte
-SBFI,Foz Do Iguacu,Sul
-SBFL,Florianopolis,Sul
-SBFN,Fernando De Noronha,Nordeste
-SBFZ,Fortaleza,Nordeste
-SBGL,Rio De Janeiro,Sudeste
-SBGO,Goiania,Centro-Oeste
-SBGP,Gaviao Peixoto,Sudeste
-SBGR,Sao Paulo,Sudeste
-SBGV,Governador Valadares,Sudeste
-SBHT,Altamira,Norte
-SBIH,Itaituba,Norte
-SBIL,Ilheus,Nordeste
-SBIP,Ipatinga,Sudeste
-SBIZ,Imperatriz,Nordeste
-SBJA,Jaguaruna,Sul
-SBJD,Jundiai,Sudeste
-SBJE,Jijoca de Jericoacoara (Cruz),Nordeste
-SBJI,Ji-Paraná,Norte
-SBJP,Joao Pessoa,Nordeste
-SBJR,Rio De Janeiro,Sudeste
-SBJU,Juazeiro Do Norte,Nordeste
-SBJV,Joinville,Sul
-SBKG,Campina Grande,Nordeste
-SBKP,Campinas,Sudeste
-SBLE,Lencois,Nordeste
-SBLO,Londrina,Sul
-SBMA,Maraba,Norte
-SBMD,Almeirim,Norte
-SBMG,Maringa,Sul
-SBMK,Montes Claros,Sudeste
-SBML,Marilia,Sudeste
-SBMO,Maceio,Nordeste
-SBMQ,Macapa,Norte
-SBMY,Manicore,Norte
-SBNF,Navegantes,Sul
-SBNM,Santo Angelo,Sul
-SBOI,Oiapoque,Norte
-SBPA,Porto Alegre,Sul
-SBPB,Parnaiba,Nordeste
-SBPF,Passo Fundo,Sul
-SBPJ,Palmas,Norte
-SBPK,Pelotas,Sul
-SBPL,Petrolina,Nordeste
-SBPO,Ponta Porã,Centro-Oeste
-SBPP,Ponta Pora,Centro-Oeste
-SBPS,Porto Seguro,Nordeste
-SBPV,Porto Velho,Norte
-SBRB,Rio Branco,Centro-Oeste
-SBRD,Rondonópolis,Centro-Oeste
-SBRF,Recife,Nordeste
-SBRJ,Rio De Janeiro,Sudeste
-SBRP,Ribeirao Preto,Sudeste
-SBSG,São Gonçalo do Amarante,Nordeste
-SBSI,Sinop,Centro-Oeste
-SBSJ,Sao Jose Dos Campos,Sudeste
-SBSL,Sao Luis,Nordeste
-SBSM,Santa Maria,Sul
-SBSN,Santarem,Norte
-SBSO,Passo Fundo,Sul
-SBSP,Sao Paulo,Sudeste
-SBSR,Sao Jose Do Rio Preto,Sudeste
-SBSV,Salvador,Nordeste
-SBTB,Oriximina,Norte
-SBTC,Una,Nordeste
-SBTE,Teresina,Nordeste
-SBTF,Tefe,Norte
-SBTT,Tabatinga,Norte
-SBTU,Tucurui,Norte
-SBUA,Sao Gabriel Da Cachoeira,Norte
-SBUG,Uruguaiana,Sul
-SBUL,Uberlandia,Sudeste
-SBUR,Uberaba,Sudeste
-SBUY,Uruguaiana,Sul
-SBVC,Vitória da Conquista,Nordeste
-SBVG,Varginha,Sudeste
-SBVH,Vilhena,Norte
-SBVT,Vitoria,Sudeste
-SBZM,Juiz De Fora,Sudeste
-SDCO,Sorocaba,Sudeste
-SDLO,Cairu,Nordeste
-SDOW,Ourilandia Do Norte,Norte
-SDSC,Sao Carlos,Sudeste
-SIMK,Franca,Sudeste
-SJZA,Tapes,Sul
-SNAB,Araripina,Nordeste
-SNBA,Barreiras,Nordeste
-SNBR,Barreiras,Nordeste
-SNCL,Cairu,Nordeste
-SNCP,Carutapera,Nordeste
-SNDV,Divinopolis,Sudeste
-SNEB,Paragominas,Norte
-SNGI,Guanambi,Nordeste
-SNGN,Garanhuns,Nordeste
-SNHS,Serra Talhada,Nordeste
-SNJM,Manhuacu,Sudeste
-SNLN,Linhares,Sudeste
-SNMZ,Porto De Moz,Norte
-SNPD,Patos De Minas,Sudeste
-SNRU,Caruaru,Nordeste
-SNSM,Salinopolis,Norte
-SNSS,Salinas,Sudeste
-SNTO,Teofilo Otoni,Sudeste
-SNTS,Patos,Nordeste
-SNVS,Breves,Norte
-SNZR,Paracatu,Sudeste
-SSGY,Guaira,Sul
-SSKW,Cacoal,Norte
-SSOU,Aripuanã,Centro-Oeste
-SSUM,Umuarama,Sul
-SSUV,Uniao Da Vitoria,Sul
-SSVL,Caarapo,Centro-Oeste
-SWBC,Barcelos,Norte
-SWBR,Borba,Norte
-SWGN,Araguaina,Norte
-SWLB,Labrea,Norte
-SWMW,Maues,Norte
-SWPI,Parintins,Norte
-SWYN,Apui,Norte
+icao,cidade,regiao,lat,lon
+SBAE,Bauru,Sudeste,-22.15783,-49.06833
+SBAQ,Araraquara,Sudeste,-21.812,-48.133
+SBAR,Aracaju,Nordeste,-10.984,-37.0703
+SBAT,Alta Floresta,Centro-Oeste,-9.86639,-56.105
+SBAU,Aracatuba,Sudeste,-21.1413,-50.4247
+SBAX,Araxa,Sudeste,-19.5632,-46.9604
+SBBE,Belem,Norte,-1.37925,-48.4763
+SBBH,Belo Horizonte,Sudeste,-19.8512,-43.9506
+SBBR,Brasilia,Centro-Oeste,-15.86917,-47.92083
+SBBV,Boa Vista,Norte,2.84139,-60.69222
+SBBW,Barra Do Garcas,Centro-Oeste,-15.8613,-52.3889
+SBBZ,Cabo Frio,Sudeste,-22.771,-41.9629
+SBCA,Cascavel,Sul,-25.0003,-53.5008
+SBCF,Belo Horizonte,Sudeste,-19.62444,-43.97194
+SBCG,Campo Grande,Centro-Oeste,-20.4687,-54.6725
+SBCH,Chapeco,Sul,-27.1342,-52.6566
+SBCJ,Carajas,Norte,-6.11528,-50.00139
+SBCN,Caldas Novas,Centro-Oeste,-17.7253,-48.6075
+SBCT,Curitiba,Sul,-25.5285,-49.1758
+SBCX,Caxias Do Sul,Sul,-29.1971,-51.1875
+SBCY,Cuiaba,Centro-Oeste,-15.6529,-56.1167
+SBCZ,Cruzeiro Do Sul,Centro-Oeste,-7.59991,-72.7695
+SBDB,Bonito,Centro-Oeste,-21.22944,-56.45611
+SBDN,Presidente Prudente,Sudeste,-22.1751,-51.4246
+SBDO,Dourados,Centro-Oeste,-22.2,-54.93
+SBEG,Manaus,Norte,-3.03861,-60.0497
+SBFI,Foz Do Iguacu,Sul,-25.60028,-54.485
+SBFL,Florianopolis,Sul,-27.67028,-48.5525
+SBFN,Fernando De Noronha,Nordeste,-3.85493,-32.4233
+SBFZ,Fortaleza,Nordeste,-3.77628,-38.5326
+SBGL,Rio De Janeiro,Sudeste,-22.81,-43.25056
+SBGO,Goiania,Centro-Oeste,-16.632,-49.2207
+SBGP,Gaviao Peixoto,Sudeste,-21.7737,-48.4051
+SBGR,Sao Paulo,Sudeste,-23.43556,-46.47306
+SBGV,Governador Valadares,Sudeste,-18.8952,-41.9822
+SBHT,Altamira,Norte,-3.25391,-52.254
+SBIH,Itaituba,Norte,-4.24234,-56.0007
+SBIL,Ilheus,Nordeste,-14.816,-39.0332
+SBIP,Ipatinga,Sudeste,-19.4707,-42.4876
+SBIZ,Imperatriz,Nordeste,-5.53129,-47.46
+SBJA,Jaguaruna,Sul,-28.67528,-49.06028
+SBJD,Jundiai,Sudeste,-23.18037,-46.94441
+SBJE,Jijoca de Jericoacoara (Cruz),Nordeste,-2.90667,-40.358
+SBJI,Ji-Paraná,Norte,-10.87,-61.85
+SBJP,Joao Pessoa,Nordeste,-7.14583,-34.94861
+SBJR,Rio De Janeiro,Sudeste,-22.9875,-43.37
+SBJU,Juazeiro Do Norte,Nordeste,-7.21896,-39.2701
+SBJV,Joinville,Sul,-26.2245,-48.7974
+SBKG,Campina Grande,Nordeste,-7.26992,-35.8964
+SBKP,Campinas,Sudeste,-23.0074,-47.1345
+SBLE,Lencois,Nordeste,-12.4823,-41.277
+SBLO,Londrina,Sul,-23.3336,-51.1301
+SBMA,Maraba,Norte,-5.36859,-49.138
+SBMD,Almeirim,Norte,-0.88984,-52.6022
+SBMG,Maringa,Sul,-23.47944,-52.01222
+SBMK,Montes Claros,Sudeste,-16.7069,-43.8189
+SBML,Marilia,Sudeste,-22.1969,-49.9264
+SBMO,Maceio,Nordeste,-9.51081,-35.7917
+SBMQ,Macapa,Norte,0.05066,-51.0722
+SBMY,Manicore,Norte,-5.81138,-61.2783
+SBNF,Navegantes,Sul,-26.88,-48.6514
+SBNM,Santo Angelo,Sul,-28.2817,-54.1691
+SBOI,Oiapoque,Norte,3.85549,-51.7969
+SBPA,Porto Alegre,Sul,-29.9944,-51.1714
+SBPB,Parnaiba,Nordeste,-2.89375,-41.732
+SBPF,Passo Fundo,Sul,-28.244,-52.3266
+SBPJ,Palmas,Norte,-10.2915,-48.357
+SBPK,Pelotas,Sul,-31.7184,-52.3277
+SBPL,Petrolina,Nordeste,-9.36241,-40.5691
+SBPO,Ponta Porã,Centro-Oeste,-22.55,-55.7
+SBPP,Ponta Pora,Centro-Oeste,-22.5496,-55.7026
+SBPS,Porto Seguro,Nordeste,-16.4386,-39.0809
+SBPV,Porto Velho,Norte,-8.70929,-63.9023
+SBRB,Rio Branco,Centro-Oeste,-9.86889,-67.89806
+SBRD,Rondonópolis,Centro-Oeste,-16.59,-54.72
+SBRF,Recife,Nordeste,-8.12649,-34.9236
+SBRJ,Rio De Janeiro,Sudeste,-22.9105,-43.1631
+SBRP,Ribeirao Preto,Sudeste,-21.13639,-47.77667
+SBSG,São Gonçalo do Amarante,Nordeste,-5.768833,-35.366333
+SBSI,Sinop,Centro-Oeste,-11.88,-55.58
+SBSJ,Sao Jose Dos Campos,Sudeste,-23.2292,-45.8615
+SBSL,Sao Luis,Nordeste,-2.58536,-44.2341
+SBSM,Santa Maria,Sul,-29.7114,-53.6882
+SBSN,Santarem,Norte,-2.42472,-54.78583
+SBSO,Passo Fundo,Sul,-28.24,-52.33
+SBSP,Sao Paulo,Sudeste,-23.62611,-46.65639
+SBSR,Sao Jose Do Rio Preto,Sudeste,-20.8166,-49.4065
+SBSV,Salvador,Nordeste,-12.908624,-38.32288
+SBTB,Oriximina,Norte,-1.4896,-56.3968
+SBTC,Una,Nordeste,-15.3552,-38.999
+SBTE,Teresina,Nordeste,-5.05994,-42.8235
+SBTF,Tefe,Norte,-3.38294,-64.7241
+SBTT,Tabatinga,Norte,-4.25567,-69.9358
+SBTU,Tucurui,Norte,-3.78601,-49.7203
+SBUA,Sao Gabriel Da Cachoeira,Norte,-0.14835,-66.9855
+SBUG,Uruguaiana,Sul,-29.7822,-57.0382
+SBUL,Uberlandia,Sudeste,-18.88361,-48.22528
+SBUR,Uberaba,Sudeste,-19.76472,-47.96611
+SBUY,Uruguaiana,Sul,-29.78,-57.04
+SBVC,Vitória da Conquista,Nordeste,-14.90783,-40.91467
+SBVG,Varginha,Sudeste,-21.5901,-45.4733
+SBVH,Vilhena,Norte,-12.6944,-60.0983
+SBVT,Vitoria,Sudeste,-20.25806,-40.28639
+SBZM,Juiz De Fora,Sudeste,-21.51306,-43.17306
+SDCO,Sorocaba,Sudeste,-23.478,-47.49
+SDLO,Cairu,Nordeste,-13.5648,-38.94
+SDOW,Ourilandia Do Norte,Norte,-6.7631,-51.0499
+SDSC,Sao Carlos,Sudeste,-21.8754,-47.9037
+SIMK,Franca,Sudeste,-20.5922,-47.3829
+SJZA,Tapes,Sul,-30.67639,-51.52528
+SNAB,Araripina,Nordeste,-7.58676,-40.5355
+SNBA,Barreiras,Nordeste,-12.08,-45.01
+SNBR,Barreiras,Nordeste,-12.0789,-45.009
+SNCL,Cairu,Nordeste,-13.38944,-38.91
+SNCP,Carutapera,Nordeste,-1.25028,-46.01722
+SNDV,Divinopolis,Sudeste,-20.1807,-44.8709
+SNEB,Paragominas,Norte,-3.02528,-47.31694
+SNGI,Guanambi,Nordeste,-14.2082,-42.7461
+SNGN,Garanhuns,Nordeste,-8.83428,-36.4716
+SNHS,Serra Talhada,Nordeste,-8.0624,-38.3288
+SNJM,Manhuacu,Sudeste,-20.25972,-42.18389
+SNLN,Linhares,Sudeste,-19.3552,-40.0695
+SNMZ,Porto De Moz,Norte,-1.74145,-52.2361
+SNPD,Patos De Minas,Sudeste,-18.6728,-46.4912
+SNRU,Caruaru,Nordeste,-8.28239,-36.0135
+SNSM,Salinopolis,Norte,-0.69566,-47.3347
+SNSS,Salinas,Sudeste,-16.2083,-42.322
+SNTO,Teofilo Otoni,Sudeste,-17.8923,-41.5136
+SNTS,Patos,Nordeste,-7.03899,-37.2516
+SNVS,Breves,Norte,-1.63653,-50.4436
+SNZR,Paracatu,Sudeste,-17.2426,-46.8831
+SSGY,Guaira,Sul,-24.0811,-54.1917
+SSKW,Cacoal,Norte,-11.4955,-61.45083
+SSOU,Aripuanã,Centro-Oeste,-10.1855,-59.45783
+SSUM,Umuarama,Sul,-23.7987,-53.3138
+SSUV,Uniao Da Vitoria,Sul,-26.2334,-51.0678
+SSVL,Caarapo,Centro-Oeste,-22.52167,-54.67778
+SWBC,Barcelos,Norte,-0.98129,-62.9196
+SWBR,Borba,Norte,-4.40634,-59.6024
+SWGN,Araguaina,Norte,-7.22787,-48.2405
+SWLB,Labrea,Norte,-7.27897,-64.7695
+SWMW,Maues,Norte,-3.37217,-57.7248
+SWPI,Parintins,Norte,-2.67302,-56.7772
+SWYN,Apui,Norte,-7.17287,-59.8396

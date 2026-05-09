@@ -91,13 +91,14 @@ for icao in sorted(icaos):
 
     cidade = airport.get('city', '').strip()
     estado = airport.get('subd', '').strip()
-
     regiao = REGIOES.get(estado, 'Desconhecida')
 
     rows.append({
         'icao': icao,
         'cidade': cidade,
-        'regiao': regiao
+        'regiao': regiao,
+        'lat': airport.get('lat', 0.0),
+        'lon': airport.get('lon', 0.0),
     })
 
 result = pd.DataFrame(rows)
@@ -134,16 +135,26 @@ for cidade, nova_regiao in correcoes.items():
     result.loc[result['cidade'] == cidade, 'regiao'] = nova_regiao
 
 # Adicionando os aeroportos que faltam
-extras = [
-    {'icao': 'SBDO', 'cidade': 'Dourados', 'regiao': 'Centro-Oeste'},
-    {'icao': 'SBJI', 'cidade': 'Ji-Paraná', 'regiao': 'Norte'},
-    {'icao': 'SBPO', 'cidade': 'Ponta Porã', 'regiao': 'Centro-Oeste'},
-    {'icao': 'SBRD', 'cidade': 'Rondonópolis', 'regiao': 'Centro-Oeste'},
-    {'icao': 'SBSI', 'cidade': 'Sinop', 'regiao': 'Centro-Oeste'},
-    {'icao': 'SBSO', 'cidade': 'Passo Fundo', 'regiao': 'Sul'},
-    {'icao': 'SBUY', 'cidade': 'Uruguaiana', 'regiao': 'Sul'},
-    {'icao': 'SNBA', 'cidade': 'Barreiras', 'regiao': 'Nordeste'}
+extras_icaos = [
+    ('SBDO', 'Dourados',     'Centro-Oeste', -22.20,  -54.93),
+    ('SBJI', 'Ji-Paraná',    'Norte',        -10.87,  -61.85),
+    ('SBPO', 'Ponta Porã',   'Centro-Oeste', -22.55,  -55.70),
+    ('SBRD', 'Rondonópolis', 'Centro-Oeste', -16.59,  -54.72),
+    ('SBSI', 'Sinop',        'Centro-Oeste', -11.88,  -55.58),
+    ('SBSO', 'Passo Fundo',  'Sul',          -28.24,  -52.33),
+    ('SBUY', 'Uruguaiana',   'Sul',          -29.78,  -57.04),
+    ('SNBA', 'Barreiras',    'Nordeste',     -12.08,  -45.01),
 ]
+
+extras = []
+for icao, cidade, regiao, lat, lon in extras_icaos:
+    extras.append({
+        'icao': icao,
+        'cidade': cidade,
+        'regiao': regiao,
+        'lat': lat,
+        'lon': lon,
+    })
 
 extras_df = pd.DataFrame(extras)
 

@@ -102,18 +102,13 @@ def export_graph_json(
             },
         })
 
-    seen: set[tuple[str, str]] = set()
     edges = []
     for iata, node in graph.nodes.items():
         for edge in node.edges:
-            pair = tuple(sorted([iata, edge.destination.iata]))
-            if pair in seen:
-                continue
-            seen.add(pair)
             edges.append({
-                "key": f"{pair[0]}-{pair[1]}",
-                "source": pair[0],
-                "target": pair[1],
+                "key": f"{iata}-{edge.destination.iata}",
+                "source": iata,
+                "target": edge.destination.iata,
                 "attributes": {
                     "weight": edge.weight,
                     "tipo_conexao": edge.tipo_conexao,
@@ -150,6 +145,119 @@ def validate_graph(graph: Graph) -> None:
     disconnected = set(graph.nodes) - visited
     if disconnected:
         raise ValueError(f"Graph is not connected. Disconnected nodes: {disconnected}")
+
+
+PARSE_NODES_CSV = "parse/output/airport_regions.csv"
+PARSE_EDGES_CSV = "parse/output/edges.csv"
+
+
+def load_graph_from_parse(
+    nodes_path: str = PARSE_NODES_CSV,
+    edges_path: str = PARSE_EDGES_CSV,
+) -> Graph:
+    if not os.path.exists(nodes_path):
+        raise FileNotFoundError(f"airport_regions.csv not found: {nodes_path} — rode 'make regions' em parse/")
+    if not os.path.exists(edges_path):
+        raise FileNotFoundError(f"edges.csv not found: {edges_path} — rode 'make edges' em parse/")
+
+    graph = Graph()
+    coords: dict[str, tuple[float, float]] = {}
+
+    with open(nodes_path, encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            icao = row["icao"].strip()
+            graph.add_node(icao, icao, row["cidade"].strip(), 0, row["regiao"].strip())
+            coords[icao] = (float(row["lat"]), float(row["lon"]))
+
+    with open(edges_path, encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            origin = row["origem"].strip()
+            dest = row["destino"].strip()
+            if origin == dest:
+                continue
+            if origin not in graph.nodes or dest not in graph.nodes:
+                continue
+            weight = float(row["peso"])
+            tipo = row.get("tipo_conexao", "").strip()
+            qty = row.get("quantidade", "")
+            justificativa = row.get("justificativa", f"{qty} voos em janeiro/2026").strip()
+            graph.add_edge(origin, dest, weight, tipo, justificativa)
+
+    visited: set[str] = set()
+
+    def dfs(iata: str) -> None:
+        visited.add(iata)
+        for edge in graph.nodes[iata].edges:
+            if edge.destination.iata not in visited:
+                dfs(edge.destination.iata)
+
+    if graph.nodes:
+        dfs(next(iter(graph.nodes)))
+        disconnected = set(graph.nodes) - visited
+        if disconnected:
+            print(f"Aviso: {len(disconnected)} nós desconectados removidos: {disconnected}")
+            for iata in disconnected:
+                del graph.nodes[iata]
+
+    return graph, coords
+
+
+def export_graph_json_from_parse(
+    graph: Graph,
+    coords: dict[str, tuple[float, float]],
+    output_paths: list[str] | None = None,
+) -> None:
+    if output_paths is None:
+        output_paths = ["frontend/public/graph.json", "out/graph.json"]
+
+    degrees = {iata: len(node.edges) for iata, node in graph.nodes.items()}
+    max_degree = max(degrees.values())
+    min_degree = min(degrees.values())
+
+    def node_size(degree: int) -> float:
+        if max_degree == min_degree:
+            return 10.0
+        return 6 + (degree - min_degree) / (max_degree - min_degree) * 14
+
+    nodes = []
+    for iata, node in graph.nodes.items():
+        lat, lon = coords.get(iata, (0.0, 0.0))
+        nodes.append({
+            "key": iata,
+            "attributes": {
+                "label": iata,
+                "city": node.city,
+                "region": node.region,
+                "x": lon,
+                "y": -lat,
+                "size": round(node_size(degrees[iata]), 2),
+                "color": REGION_COLORS.get(node.region, "#94a3b8"),
+            },
+        })
+
+    edges = []
+    for iata, node in graph.nodes.items():
+        for edge in node.edges:
+            edges.append({
+                "key": f"{iata}-{edge.destination.iata}",
+                "source": iata,
+                "target": edge.destination.iata,
+                "attributes": {
+                    "weight": edge.weight,
+                    "tipo_conexao": edge.tipo_conexao,
+                    "justificativa": edge.justificativa,
+                    "size": 1,
+                    "color": "#94a3b8",
+                },
+            })
+
+    payload = json.dumps({"nodes": nodes, "edges": edges}, ensure_ascii=False)
+
+    for path in output_paths:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(payload)
+        print(f"Exported {len(nodes)} nodes and {len(edges)} edges → {path}")
 
 
 def load_routes(filepath: str = "data/rotas.csv") -> list[tuple[str, str]]:

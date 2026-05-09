@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from graphs.io import load_graph, export_graph_json
+from graphs.io import load_graph_from_parse, export_graph_json_from_parse
 from graphs.metrics_exporter import (
     export_global_metrics_json,
     export_regions_metrics_json,
@@ -63,12 +63,12 @@ def _build_ego_data(graph):
 
 
 def solve():
-    graph = load_graph()
+    graph, coords = load_graph_from_parse()
 
     all_nodes = list(graph.nodes.values())
     all_edges = _undirected_edges(graph)
 
-    export_graph_json(graph)
+    export_graph_json_from_parse(graph, coords)
     print(f"Metricas globais: {len(all_nodes)} nos, {len(all_edges)} arestas")
 
     export_global_metrics_json(all_nodes, all_edges)

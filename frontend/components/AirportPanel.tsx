@@ -61,10 +61,13 @@ export function AirportPanel({
   }
   edges.sort((a, b) => a.weight - b.weight);
 
-  const egoR = Math.min(108, Math.max(72, edges.length * 7));
+  const uniqueNeighbors = Array.from(
+    new Map(edges.map((e) => [e.neighborKey, e])).values()
+  );
+  const egoR = Math.min(108, Math.max(72, uniqueNeighbors.length * 7));
   const neighborPos = new Map<string, [number, number]>();
-  edges.forEach((e, i) => {
-    const angle = (2 * Math.PI * i) / edges.length - Math.PI / 2;
+  uniqueNeighbors.forEach((e, i) => {
+    const angle = (2 * Math.PI * i) / uniqueNeighbors.length - Math.PI / 2;
     neighborPos.set(e.neighborKey, [Math.cos(angle) * egoR, Math.sin(angle) * egoR]);
   });
 
@@ -108,7 +111,7 @@ export function AirportPanel({
     (e) => vEgo.has(e.source) && vEgo.has(e.target)
   ).length;
   const egoOrder = vEgo.size;
-  const egoDensity = egoOrder < 2 ? 0 : (2 * eEgoSize) / (egoOrder * (egoOrder - 1));
+  const egoDensity = egoOrder < 2 ? 0 : eEgoSize / (egoOrder * (egoOrder - 1));
 
   const nodeColor = REGION_COLORS[node.attributes.region] ?? "#94a3b8";
   const outCount = edges.filter((e) => e.direction === "out").length;
@@ -196,7 +199,7 @@ export function AirportPanel({
               }
             })}
 
-            {edges.map((e) => {
+            {uniqueNeighbors.map((e) => {
               const np = neighborPos.get(e.neighborKey)!;
               const color = REGION_COLORS[e.neighborRegion] ?? "#94a3b8";
               const r = 5 / scale;

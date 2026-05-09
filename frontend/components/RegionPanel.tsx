@@ -28,7 +28,7 @@ export function RegionPanel({
 
   const order = regionNodes.length;
   const size = regionEdges.length;
-  const density = order < 2 ? 0 : (2 * size) / (order * (order - 1));
+  const density = order < 2 ? 0 : size / (order * (order - 1));
 
   const degreeMap = new Map<string, number>(regionNodes.map((n) => [n.key, 0]));
   for (const e of regionEdges) {
