@@ -7,7 +7,7 @@ import type { GraphData } from "@/lib/graph/types";
 import { AirportPanel } from "@/components/AirportPanel";
 import { RegionPanel } from "@/components/RegionPanel";
 import { DijkstraPanel } from "@/components/DijkstraPanel";
-import { type DijkstraResult, getHighlightedEdges } from "@/lib/graph/dijkstra";
+import { type DijkstraResult, getHighlightedEdges, getPath } from "@/lib/graph/dijkstra";
 
 // ─── GeoJSON ─────────────────────────────────────────────────────────────────
 type GeoRing = number[][];
@@ -111,6 +111,42 @@ function toSVG(svg: SVGSVGElement, clientX: number, clientY: number): [number, n
 	pt.y = clientY;
 	const { x, y } = pt.matrixTransform(svg.getScreenCTM()!.inverse());
 	return [x, y];
+}
+
+// ─── Airplane animation ───────────────────────────────────────────────────────
+function AirplaneAnimation({
+	pathKeys,
+	nodeMap,
+	scale,
+}: {
+	pathKeys: string[];
+	nodeMap: Map<string, { pos: [number, number] }>;
+	scale: number;
+}) {
+	if (pathKeys.length < 2) return null;
+
+	const motionPath = pathKeys
+		.map((key, i) => {
+			const nd = nodeMap.get(key);
+			if (!nd) return "";
+			return `${i === 0 ? "M" : "L"}${nd.pos[0].toFixed(1)},${nd.pos[1].toFixed(1)}`;
+		})
+		.filter(Boolean)
+		.join(" ");
+
+	const s = 2 / scale;
+
+	return (
+		<g pointerEvents="none">
+			<animateMotion dur="2s" repeatCount="indefinite" rotate="auto" path={motionPath} />
+			<g transform={`scale(${s}) rotate(90) translate(-8,-8)`}>
+				<path
+					fill="#f59e0b"
+					d="M8 1.5c-.5 0-1 .5-1.002 1v2.717L2.242 8.07a.5.5 0 0 0-.244.43V10a.5.5 0 0 0 .687.465L6.998 8.74v3.992l-1.275.852a.5.5 0 0 0-.225.416v.5a.5.5 0 0 0 .623.486L8 14.516l1.879.47c.316.08.623-.16.623-.486V14a.5.5 0 0 0-.225-.416l-1.275-.852V8.74l4.312 1.725c.33.132.688-.11.688-.465V8.5a.5.5 0 0 0-.244-.43L9.002 5.217V2.5C9 2 8.5 1.5 8 1.5"
+				/>
+			</g>
+		</g>
+	);
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -376,6 +412,14 @@ export function BrazilAirportMap() {
 									</g>
 								);
 							})}
+
+						{dijkstraResult?.destKey && (
+							<AirplaneAnimation
+								pathKeys={getPath(dijkstraResult.prev, dijkstraResult.destKey)}
+								nodeMap={nodeMap}
+								scale={scale}
+							/>
+						)}
 						</g>
 					</svg>
 
@@ -416,7 +460,7 @@ export function BrazilAirportMap() {
 				<AnimatePresence>
 					{(selectedKey || selectedRegion || showDijkstra) && (
 						<motion.div
-							key={selectedKey ?? `region-${selectedRegion}` ?? "dijkstra"}
+							key={showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
 							initial={{ width: 0, opacity: 0 }}
 							animate={{ width: panelWidth, opacity: 1 }}
 							exit={{ width: 0, opacity: 0 }}
