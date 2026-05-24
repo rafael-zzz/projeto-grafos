@@ -66,7 +66,7 @@ export function getHighlightedEdges(
   if (destKey) {
     let curr: string | null = destKey;
     while (curr !== null) {
-      const p = prev.get(curr) ?? null;
+      const p: string | null = prev.get(curr) ?? null;
       if (p !== null) edges.add(`${p}-${curr}`);
       curr = p;
     }

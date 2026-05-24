@@ -167,11 +167,13 @@ export function BrazilAirportMap() {
 	const [showBfs, setShowBfs] = useState(false);
 	const [bfsResult, setBfsResult] = useState<BfsResult | null>(null);
 	const [panelWidth, setPanelWidth] = useState(288);
+	const [isPanelResizing, setIsPanelResizing] = useState(false);
 	const isResizing = useRef(false);
 	const didDrag = useRef(false);
 
 	function startResize(e: React.MouseEvent) {
 		isResizing.current = true;
+		setIsPanelResizing(true);
 		const startX = e.clientX;
 		const startW = panelWidth;
 		e.preventDefault();
@@ -182,6 +184,7 @@ export function BrazilAirportMap() {
 		};
 		const onUp = () => {
 			isResizing.current = false;
+			setIsPanelResizing(false);
 			document.removeEventListener("mousemove", onMove);
 			document.removeEventListener("mouseup", onUp);
 		};
@@ -476,7 +479,7 @@ export function BrazilAirportMap() {
 						initial={{ width: 0, opacity: 0 }}
 						animate={{ width: panelWidth, opacity: 1 }}
 						exit={{ width: 0, opacity: 0 }}
-						transition={isResizing.current ? { duration: 0 } : { duration: 0.28, ease: "easeInOut" }}
+						transition={isPanelResizing ? { duration: 0 } : { duration: 0.28, ease: "easeInOut" }}
 						className="relative shrink-0 overflow-hidden"
 					>
 						<div className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400" onMouseDown={startResize} />

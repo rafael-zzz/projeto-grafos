@@ -20,7 +20,7 @@ type PanelEdge = {
   neighborRegion: string;
   weight: number;
   tipoConexao: string;
-  justificativa: string;
+  flights: number;
   direction: "out" | "in";
 };
 
@@ -53,10 +53,10 @@ export function AirportPanel({
   for (const e of graph.edges) {
     if (e.source === nodeKey) {
       const nb = nodeMap.get(e.target);
-      if (nb) edges.push({ key: e.key, neighborKey: e.target, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, tipoConexao: e.attributes.tipo_conexao, justificativa: e.attributes.justificativa, direction: "out" });
+      if (nb) edges.push({ key: e.key, neighborKey: e.target, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, tipoConexao: e.attributes.connection_type, flights: e.attributes.flights, direction: "out" });
     } else if (e.target === nodeKey) {
       const nb = nodeMap.get(e.source);
-      if (nb) edges.push({ key: e.key, neighborKey: e.source, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, tipoConexao: e.attributes.tipo_conexao, justificativa: e.attributes.justificativa, direction: "in" });
+      if (nb) edges.push({ key: e.key, neighborKey: e.source, neighborLabel: nb.attributes.label, neighborCity: nb.attributes.city, neighborRegion: nb.attributes.region, weight: e.attributes.weight, tipoConexao: e.attributes.connection_type, flights: e.attributes.flights, direction: "in" });
     }
   }
   edges.sort((a, b) => a.weight - b.weight);
@@ -245,7 +245,7 @@ export function AirportPanel({
                 <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
                   {e.tipoConexao}
                 </span>
-                <span className="truncate text-[10px] text-zinc-400">{e.justificativa}</span>
+                <span className="truncate text-[10px] text-zinc-400">{e.flights} voos</span>
               </div>
             </li>
           ))}
