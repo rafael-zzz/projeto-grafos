@@ -1,8 +1,10 @@
 import json
 
+import avd_visualizations as avd
 from avd_visualizations import (
     DegreeRecord,
     RegionFlow,
+    RegionMetric,
     build_degree_distribution,
     build_region_flow_matrix,
     load_degrees,
@@ -89,6 +91,37 @@ def test_build_region_flow_matrix_orders_regions_and_fills_missing_pairs():
     ]
 
 
+def test_top_degrees_returns_highest_degrees_in_descending_order():
+    degrees = [
+        DegreeRecord("A", 2),
+        DegreeRecord("B", 10),
+        DegreeRecord("C", 7),
+    ]
+
+    result = avd.top_degrees(degrees, limit=2)
+
+    assert result == [
+        DegreeRecord("B", 10),
+        DegreeRecord("C", 7),
+    ]
+
+
+def test_sort_regions_by_density_orders_from_highest_to_lowest():
+    metrics = [
+        RegionMetric("Norte", 36, 51, 0.081),
+        RegionMetric("Sudeste", 38, 105, 0.1494),
+        RegionMetric("Sul", 23, 30, 0.1186),
+    ]
+
+    result = avd.sort_regions_by_density(metrics)
+
+    assert result == [
+        RegionMetric("Sudeste", 38, 105, 0.1494),
+        RegionMetric("Sul", 23, 30, 0.1186),
+        RegionMetric("Norte", 36, 51, 0.081),
+    ]
+
+
 def test_plot_degree_distribution_writes_png(tmp_path):
     output = tmp_path / "distribuicao_graus.png"
 
@@ -106,6 +139,37 @@ def test_plot_region_flow_heatmap_writes_png(tmp_path):
 
     plot_region_flow_heatmap(
         [RegionFlow("Sudeste", "Nordeste", 10)],
+        output,
+    )
+
+    assert output.exists()
+    assert output.stat().st_size > 0
+
+
+def test_plot_degree_ranking_writes_png(tmp_path):
+    output = tmp_path / "ranking_graus.png"
+
+    avd.plot_degree_ranking(
+        [
+            DegreeRecord("SBKP", 63),
+            DegreeRecord("SBCF", 59),
+            DegreeRecord("SBGR", 59),
+        ],
+        output,
+    )
+
+    assert output.exists()
+    assert output.stat().st_size > 0
+
+
+def test_plot_region_density_writes_png(tmp_path):
+    output = tmp_path / "densidade_regioes.png"
+
+    avd.plot_region_density(
+        [
+            RegionMetric("Sudeste", 38, 105, 0.1494),
+            RegionMetric("Norte", 36, 51, 0.081),
+        ],
         output,
     )
 

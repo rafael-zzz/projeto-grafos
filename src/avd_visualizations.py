@@ -111,6 +111,20 @@ def build_region_flow_matrix(
     return regions, matrix
 
 
+def top_degrees(
+    degrees: list[DegreeRecord],
+    limit: int = 10,
+) -> list[DegreeRecord]:
+    if limit <= 0:
+        return []
+
+    return sorted(degrees, key=lambda record: record.degree, reverse=True)[:limit]
+
+
+def sort_regions_by_density(metrics: list[RegionMetric]) -> list[RegionMetric]:
+    return sorted(metrics, key=lambda metric: metric.density, reverse=True)
+
+
 def _load_pyplot():
     import matplotlib
 
@@ -165,14 +179,87 @@ def plot_region_flow_heatmap(
     plt.close(fig)
 
 
+def plot_degree_ranking(
+    degrees: list[DegreeRecord],
+    output_path: str | Path,
+) -> None:
+    plt = _load_pyplot()
+
+    ranked_degrees = top_degrees(degrees)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.barh(
+        [record.airport for record in ranked_degrees],
+        [record.degree for record in ranked_degrees],
+        color="#0f766e",
+    )
+    ax.set_title("Aeroportos mais conectados")
+    ax.set_xlabel("Grau")
+    ax.set_ylabel("Aeroporto")
+    ax.invert_yaxis()
+    ax.grid(axis="x", alpha=0.25)
+
+    for index, record in enumerate(ranked_degrees):
+        ax.text(
+            record.degree + 0.5,
+            index,
+            str(record.degree),
+            va="center",
+            fontsize=8,
+        )
+
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=160)
+    plt.close(fig)
+
+
+def plot_region_density(
+    metrics: list[RegionMetric],
+    output_path: str | Path,
+) -> None:
+    plt = _load_pyplot()
+
+    ordered_metrics = sort_regions_by_density(metrics)
+    max_density = max((metric.density for metric in ordered_metrics), default=0)
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+    ax.bar(
+        [metric.region for metric in ordered_metrics],
+        [metric.density for metric in ordered_metrics],
+        color="#9333ea",
+    )
+    ax.set_title("Densidade dos subgrafos por regiao")
+    ax.set_xlabel("Regiao")
+    ax.set_ylabel("Densidade")
+    ax.set_ylim(0, max_density * 1.2 if max_density else 1)
+    ax.grid(axis="y", alpha=0.25)
+
+    for index, metric in enumerate(ordered_metrics):
+        ax.text(
+            index,
+            metric.density,
+            f"{metric.density:.3f}",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+        )
+
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=160)
+    plt.close(fig)
+
+
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     degrees = load_degrees(DEGREES_CSV)
+    metrics = load_region_metrics(REGION_METRICS_JSON)
     flows = load_region_flows(REGION_FLOWS_CSV)
 
     plot_degree_distribution(degrees, OUT_DIR / "distribuicao_graus.png")
     plot_region_flow_heatmap(flows, OUT_DIR / "fluxo_regioes.png")
+    plot_degree_ranking(degrees, OUT_DIR / "ranking_graus.png")
+    plot_region_density(metrics, OUT_DIR / "densidade_regioes.png")
 
 
 if __name__ == "__main__":
