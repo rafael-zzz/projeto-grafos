@@ -8,6 +8,7 @@ OUT_DIR = ROOT_DIR / "out"
 DEGREES_CSV = OUT_DIR / "graus.csv"
 REGION_METRICS_JSON = OUT_DIR / "regioes.json"
 REGION_FLOWS_CSV = OUT_DIR / "flight_regions.csv"
+NOTES_MD = OUT_DIR / "notas_analiticas.md"
 
 
 @dataclass(frozen=True)
@@ -249,6 +250,81 @@ def plot_region_density(
     plt.close(fig)
 
 
+def build_analysis_notes(
+    degrees: list[DegreeRecord],
+    metrics: list[RegionMetric],
+    flows: list[RegionFlow],
+) -> str:
+    top_airports = top_degrees(degrees)
+    ordered_metrics = sort_regions_by_density(metrics)
+    strongest_flow = max(flows, key=lambda flow: flow.flights, default=None)
+
+    lines = [
+        "# Notas analiticas da AVD",
+        "",
+        "## Leitura exploratoria",
+        "- A distribuicao de graus ajuda a ver se a malha tem muitos aeroportos "
+        "perifericos ou poucos hubs concentrando conexoes.",
+    ]
+
+    if strongest_flow is not None:
+        lines.append(
+            f"- Maior fluxo regional: {strongest_flow.origin} -> "
+            f"{strongest_flow.destination} ({strongest_flow.flights} voos)."
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Leitura explanatoria",
+        ]
+    )
+
+    if top_airports:
+        top_airport = top_airports[0]
+        lines.append(
+            f"- Aeroporto mais conectado: {top_airport.airport} "
+            f"(grau {top_airport.degree})."
+        )
+
+    if ordered_metrics:
+        densest_region = ordered_metrics[0]
+        least_dense_region = ordered_metrics[-1]
+        lines.append(
+            f"- Regiao com maior densidade: {densest_region.region} "
+            f"({densest_region.density:.4f})."
+        )
+        lines.append(
+            f"- Regiao com menor densidade: {least_dense_region.region} "
+            f"({least_dense_region.density:.4f})."
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Arquivos gerados",
+            "- out/distribuicao_graus.png",
+            "- out/fluxo_regioes.png",
+            "- out/ranking_graus.png",
+            "- out/densidade_regioes.png",
+        ]
+    )
+
+    return "\n".join(lines) + "\n"
+
+
+def write_analysis_notes(
+    degrees: list[DegreeRecord],
+    metrics: list[RegionMetric],
+    flows: list[RegionFlow],
+    output_path: str | Path,
+) -> None:
+    Path(output_path).write_text(
+        build_analysis_notes(degrees, metrics, flows),
+        encoding="utf-8",
+    )
+
+
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -260,6 +336,7 @@ def main() -> None:
     plot_region_flow_heatmap(flows, OUT_DIR / "fluxo_regioes.png")
     plot_degree_ranking(degrees, OUT_DIR / "ranking_graus.png")
     plot_region_density(metrics, OUT_DIR / "densidade_regioes.png")
+    write_analysis_notes(degrees, metrics, flows, NOTES_MD)
 
 
 if __name__ == "__main__":

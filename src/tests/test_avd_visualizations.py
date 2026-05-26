@@ -175,3 +175,40 @@ def test_plot_region_density_writes_png(tmp_path):
 
     assert output.exists()
     assert output.stat().st_size > 0
+
+
+def test_build_analysis_notes_summarizes_main_findings():
+    notes = avd.build_analysis_notes(
+        degrees=[
+            DegreeRecord("SBKP", 63),
+            DegreeRecord("SBCF", 59),
+            DegreeRecord("SBBE", 25),
+        ],
+        metrics=[
+            RegionMetric("Sudeste", 38, 105, 0.1494),
+            RegionMetric("Norte", 36, 51, 0.081),
+        ],
+        flows=[
+            RegionFlow("Sudeste", "Nordeste", 9346),
+            RegionFlow("Nordeste", "Sudeste", 9382),
+        ],
+    )
+
+    assert "# Notas analiticas da AVD" in notes
+    assert "Aeroporto mais conectado: SBKP (grau 63)" in notes
+    assert "Regiao com maior densidade: Sudeste (0.1494)" in notes
+    assert "Maior fluxo regional: Nordeste -> Sudeste (9382 voos)" in notes
+
+
+def test_write_analysis_notes_writes_markdown(tmp_path):
+    output = tmp_path / "notas_analiticas.md"
+
+    avd.write_analysis_notes(
+        degrees=[DegreeRecord("SBKP", 63)],
+        metrics=[RegionMetric("Sudeste", 38, 105, 0.1494)],
+        flows=[RegionFlow("Sudeste", "Sudeste", 12000)],
+        output_path=output,
+    )
+
+    assert output.exists()
+    assert output.read_text(encoding="utf-8").startswith("# Notas analiticas")
