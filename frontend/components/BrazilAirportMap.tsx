@@ -1,15 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BRAZIL_MACRO_REGION, MACRO_REGION_CHOROPLETH_COLORS, MACRO_REGION_LABEL, STATE_ID_TO_MACRO_REGION } from "@/lib/brazil/brazilMacroRegions";
-import type { GraphData } from "@/lib/graph/types";
+import type { GraphData, RouteTreeData } from "@/lib/graph/types";
 import { AirportPanel } from "@/components/AirportPanel";
 import { RegionPanel } from "@/components/RegionPanel";
 import { DijkstraPanel } from "@/components/DijkstraPanel";
 import { BfsPanel } from "@/components/BfsPanel";
+import { RouteTreePanel } from "@/components/RouteTreePanel";
 import { type DijkstraResult, getHighlightedEdges, getPath } from "@/lib/graph/dijkstra";
 import { type BfsResult, getBfsTreeEdges, bfsLevelColor } from "@/lib/graph/bfs";
+import { createRouteSelection, type RouteSelection, type RouteSelectionTarget } from "@/lib/graph/routeTree";
 
 // ─── GeoJSON ─────────────────────────────────────────────────────────────────
 type GeoRing = number[][];
@@ -159,6 +161,9 @@ const IBGE_GEO_URL = "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?i
 export function BrazilAirportMap() {
 	const [geo, setGeo] = useState<GeoCollection | null>(null);
 	const [graph, setGraph] = useState<GraphData | null>(null);
+	const [routeTree, setRouteTree] = useState<RouteTreeData | null>(null);
+	const [routeSelections, setRouteSelections] = useState<RouteSelection[]>([createRouteSelection(0)]);
+	const [routeSelectionTarget, setRouteSelectionTarget] = useState<RouteSelectionTarget>(null);
 	const [tooltip, setTooltip] = useState<Tooltip>(null);
 	const [selectedKey, setSelectedKey] = useState<string | null>(null);
 	const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -166,6 +171,7 @@ export function BrazilAirportMap() {
 	const [dijkstraResult, setDijkstraResult] = useState<DijkstraResult | null>(null);
 	const [showBfs, setShowBfs] = useState(false);
 	const [bfsResult, setBfsResult] = useState<BfsResult | null>(null);
+	const [showRouteTree, setShowRouteTree] = useState(false);
 	const [panelWidth, setPanelWidth] = useState(288);
 	const [isPanelResizing, setIsPanelResizing] = useState(false);
 	const isResizing = useRef(false);
@@ -204,8 +210,40 @@ export function BrazilAirportMap() {
 		});
 	}
 
+	function updateRouteSelections(updater: SetStateAction<RouteSelection[]>) {
+		setRouteSelections(updater);
+		setRouteTree(null);
+	}
+
+	function toggleRouteTree(nextValue: boolean) {
+		setShowRouteTree(nextValue);
+		if (nextValue) {
+			setRouteSelectionTarget({ routeId: routeSelections[0].id, field: "origin" });
+		} else {
+			setRouteSelectionTarget(null);
+		}
+	}
+
+	function applyRouteTreeNodeSelection(nodeKey: string) {
+		if (!routeSelectionTarget) return false;
+
+		const target = routeSelectionTarget;
+		updateRouteSelections((current) =>
+			current.map((route) =>
+				route.id === target.routeId
+					? { ...route, [target.field]: nodeKey }
+					: route
+			)
+		);
+		setRouteSelectionTarget(target.field === "origin" ? { routeId: target.routeId, field: "destination" } : null);
+		return true;
+	}
+
 	useEffect(() => {
-		Promise.all([fetch(IBGE_GEO_URL).then((r) => r.json()), fetch("/graph.json").then((r) => r.json())]).then(([geoData, graphData]: [GeoCollection, GraphData]) => {
+		Promise.all([
+			fetch(IBGE_GEO_URL).then((r) => r.json()),
+			fetch("/graph.json").then((r) => r.json()),
+		]).then(([geoData, graphData]: [GeoCollection, GraphData]) => {
 			setGeo(geoData);
 			setGraph(graphData);
 		});
@@ -256,14 +294,14 @@ export function BrazilAirportMap() {
 		);
 	}
 
-	const nodeMap = new Map(graph.nodes.map((n) => [n.key, { ...n.attributes, pos: project(n.attributes.x, n.attributes.y) }]));
-
-	const globalDensity = graph.nodes.length < 2 ? 0 : (2 * graph.edges.length) / (graph.nodes.length * (graph.nodes.length - 1));
-
+	const routeTreeActive = showRouteTree && routeTree !== null && !showBfs && !showDijkstra;
+	const displayGraph = routeTreeActive ? routeTree : graph;
+	const nodeMap = new Map(displayGraph.nodes.map((n) => [n.key, { ...n.attributes, pos: project(n.attributes.x, n.attributes.y) }]));
+	const globalDensity = displayGraph.nodes.length < 2 ? 0 : (2 * displayGraph.edges.length) / (displayGraph.nodes.length * (displayGraph.nodes.length - 1));
+	const routeTreeLegend = routeTree?.routes ?? [];
 	const { x: tx, y: ty, scale } = tr;
-
-	const dijkstraEdges = dijkstraResult ? getHighlightedEdges(dijkstraResult.prev, dijkstraResult.destKey) : null;
-	const bfsTreeEdges = bfsResult ? getBfsTreeEdges(bfsResult.prev) : null;
+	const dijkstraEdges = !routeTreeActive && dijkstraResult ? getHighlightedEdges(dijkstraResult.prev, dijkstraResult.destKey) : null;
+	const bfsTreeEdges = !routeTreeActive && bfsResult ? getBfsTreeEdges(bfsResult.prev) : null;
 
 	return (
 		<div className="flex h-full w-full flex-col bg-zinc-50">
@@ -271,25 +309,34 @@ export function BrazilAirportMap() {
 				<div>
 					<h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
 					<p className="mt-0.5 text-xs text-zinc-500">
-						Ordem: {graph.nodes.length} · Tamanho: {graph.edges.length} · Densidade: {globalDensity.toFixed(6)}
+						{routeTreeActive
+							? `Rotas: ${routeTree.routes.length} · Nós: ${displayGraph.nodes.length} · Arestas: ${displayGraph.edges.length}`
+							: `Ordem: ${displayGraph.nodes.length} · Tamanho: ${displayGraph.edges.length} · Densidade: ${globalDensity.toFixed(6)}`}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
 					<button
-						onClick={() => { setShowBfs((v) => !v); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+						onClick={() => { setShowRouteTree(false); setShowBfs((v) => !v); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
 						className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showBfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
 					>
 						BFS
 					</button>
 					<button
-						onClick={() => { setShowDijkstra((v) => !v); setShowBfs(false); setBfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
-						className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDijkstra ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+						onClick={() => { setShowRouteTree(false); setShowDijkstra((v) => !v); setShowBfs(false); setBfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
+							className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${routeTreeActive ? "border-zinc-200 bg-white text-zinc-400" : showDijkstra ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+						disabled={false}
 					>
 						Dijkstra
 					</button>
+					<button
+						onClick={() => { toggleRouteTree(!showRouteTree); setShowBfs(false); setShowDijkstra(false); setBfsResult(null); setDijkstraResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+							disabled={false}
+							className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${(showRouteTree || routeTreeActive) ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+					>
+						Percurso
+					</button>
 				</div>
 			</header>
-
 			<div className="flex min-h-0 flex-1">
 				{/* Map */}
 				<div className="relative min-w-0 flex-1 overflow-hidden">
@@ -329,6 +376,26 @@ export function BrazilAirportMap() {
 							<marker id="arrow-bfs" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
 								<path d="M0,0 L6,3 L0,6 Z" fill="#0ea5e9" />
 							</marker>
+								{routeTreeActive && routeTreeLegend.map((route) => (
+									<marker
+										key={route.id}
+										id={`arrow-route-${route.id}`}
+										viewBox="0 0 6 6"
+										refX="6"
+										refY="3"
+										markerUnits="strokeWidth"
+										markerWidth="6"
+										markerHeight="6"
+										orient="auto"
+									>
+										<path d="M0,0 L6,3 L0,6 Z" fill={route.color} />
+									</marker>
+								))}
+								{routeTreeActive && (
+									<marker id="arrow-route-shared" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+										<path d="M0,0 L6,3 L0,6 Z" fill="#111827" />
+									</marker>
+								)}
 						</defs>
 						<g transform={`translate(${tx},${ty}) scale(${scale})`}>
 							{geo.features.map((f, i) => {
@@ -344,7 +411,7 @@ export function BrazilAirportMap() {
 										strokeWidth={1 / scale}
 										className={fRegion ? "cursor-pointer" : undefined}
 										onClick={() => {
-											if (didDrag.current || !fRegion) return;
+											if (routeTreeActive || didDrag.current || !fRegion) return;
 											setSelectedRegion((prev) => (prev === fRegion ? null : fRegion));
 											setSelectedKey(null);
 										}}
@@ -352,7 +419,7 @@ export function BrazilAirportMap() {
 								);
 							})}
 
-							{graph.edges.map((e) => {
+							{displayGraph.edges.map((e) => {
 								const s = nodeMap.get(e.source);
 								const d = nodeMap.get(e.target);
 								if (!s || !d) return null;
@@ -361,46 +428,83 @@ export function BrazilAirportMap() {
 								const dist = Math.sqrt(dx * dx + dy * dy);
 								if (dist === 0) return null;
 								const r = 6 / scale;
-								const inDijkstra = dijkstraEdges ? dijkstraEdges.has(e.key) : null;
-								const inBfsTree = bfsTreeEdges ? bfsTreeEdges.has(e.key) : null;
-								const inRegion = !selectedRegion || (s.region === selectedRegion && d.region === selectedRegion);
-								const edgeColor = inBfsTree ? "#0ea5e9" : inDijkstra ? "#f59e0b" : selectedRegion && inRegion ? (REGION_COLORS[selectedRegion] ?? "#94a3b8") : "#94a3b8";
-								const markerId = inBfsTree ? "arrow-bfs" : inDijkstra ? "arrow-dijkstra" : selectedRegion && inRegion ? `arrow-${selectedRegion.replace(/\W/g, "")}` : "arrow";
-								const opacity = bfsTreeEdges ? (inBfsTree ? 0.85 : 0) : dijkstraEdges ? (inDijkstra ? 0.95 : 0) : selectedRegion ? (inRegion ? 0.8 : 0) : 0.45;
+									const inDijkstra = dijkstraEdges ? dijkstraEdges.has(e.key) : null;
+									const inBfsTree = bfsTreeEdges ? bfsTreeEdges.has(e.key) : null;
+									const inRegion = !selectedRegion || (s.region === selectedRegion && d.region === selectedRegion);
+									const routeIds = e.attributes.routes ?? [];
+									const routeColors = e.attributes.route_colors ?? [];
+									const isRouteTreeEdge = routeTreeActive;
+									const isSharedRoute = routeIds.length > 1;
+									const edgeColor = isRouteTreeEdge
+										? (isSharedRoute ? "#111827" : routeColors[0] ?? "#f59e0b")
+										: inBfsTree
+											? "#0ea5e9"
+											: inDijkstra
+												? "#f59e0b"
+												: selectedRegion && inRegion
+													? (REGION_COLORS[selectedRegion] ?? "#94a3b8")
+													: "#94a3b8";
+									const markerId = isRouteTreeEdge
+										? (isSharedRoute ? "arrow-route-shared" : `arrow-route-${routeIds[0]}`)
+										: inBfsTree
+											? "arrow-bfs"
+											: inDijkstra
+												? "arrow-dijkstra"
+												: selectedRegion && inRegion
+													? `arrow-${selectedRegion.replace(/\W/g, "")}`
+													: "arrow";
+									const opacity = isRouteTreeEdge
+										? 0.92
+										: bfsTreeEdges
+											? (inBfsTree ? 0.85 : 0)
+											: dijkstraEdges
+												? (inDijkstra ? 0.95 : 0)
+												: selectedRegion
+													? (inRegion ? 0.8 : 0)
+													: 0.45;
 								return (
 									<line
 										key={e.key}
 										x1={s.pos[0]}
 										y1={s.pos[1]}
-										x2={d.pos[0] - (dx / dist) * r}
-										y2={d.pos[1] - (dy / dist) * r}
+											x2={d.pos[0] - (dx / dist) * r}
+											y2={d.pos[1] - (dy / dist) * r}
 										stroke={edgeColor}
-										strokeWidth={inDijkstra ? 2 / scale : selectedRegion && inRegion ? 1.5 / scale : 1 / scale}
+											strokeWidth={isRouteTreeEdge ? ((isSharedRoute ? 2.5 : 2) / scale) : inDijkstra ? 2 / scale : selectedRegion && inRegion ? 1.5 / scale : 1 / scale}
 										strokeOpacity={opacity}
 										markerEnd={opacity > 0 ? `url(#${markerId})` : undefined}
 									/>
 								);
 							})}
 
-							{graph.nodes.map((n) => {
+							{displayGraph.nodes.map((n) => {
 								const nd = nodeMap.get(n.key)!;
-								const bfsLevel = bfsResult?.levels.get(n.key);
-								const inBfs = bfsLevel !== undefined;
-								const color = bfsResult ? bfsLevelColor(bfsLevel ?? 0, bfsResult.maxLevel) : (REGION_COLORS[nd.region] ?? "#94a3b8");
+									const bfsLevel = routeTreeActive ? undefined : bfsResult?.levels.get(n.key);
+									const inBfs = bfsLevel !== undefined;
+									const color = routeTreeActive
+										? ((nd.route_colors?.length ?? 0) > 1
+											? "#111827"
+											: nd.route_colors?.[0] ?? (REGION_COLORS[nd.region] ?? "#94a3b8"))
+										: bfsResult
+											? bfsLevelColor(bfsLevel ?? 0, bfsResult.maxLevel)
+											: (REGION_COLORS[nd.region] ?? "#94a3b8");
 								const [px, py] = nd.pos;
-								const r = 6 / scale;
+									const r = routeTreeActive ? 7 / scale : 6 / scale;
 								const isSelected = n.key === selectedKey;
 								const inRegion = !selectedRegion || nd.region === selectedRegion;
 								const inDijkstraPath = dijkstraResult
-									? n.key === dijkstraResult.originKey ||
-										n.key === dijkstraResult.destKey ||
-										(dijkstraEdges ? [...dijkstraEdges].some((k) => k.startsWith(`${n.key}-`) || k.endsWith(`-${n.key}`)) : false)
-									: null;
-								const nodeOpacity = bfsResult
-									? (inBfs ? 1 : 0)
-									: dijkstraEdges ? (inDijkstraPath ? 1 : 0)
-									: selectedRegion ? (inRegion ? 1 : 0.15) : 1;
-								const nodePointerEvents = (bfsResult && !inBfs) || (dijkstraEdges && !inDijkstraPath) ? "none" : "auto";
+										? n.key === dijkstraResult.originKey ||
+											n.key === dijkstraResult.destKey ||
+											(dijkstraEdges ? [...dijkstraEdges].some((k) => k.startsWith(`${n.key}-`) || k.endsWith(`-${n.key}`)) : false)
+										: null;
+									const nodeOpacity = routeTreeActive
+										? 1
+										: bfsResult
+											? (inBfs ? 1 : 0)
+											: dijkstraEdges
+												? (inDijkstraPath ? 1 : 0)
+												: selectedRegion ? (inRegion ? 1 : 0.15) : 1;
+									const nodePointerEvents = routeTreeActive ? "auto" : ((bfsResult && !inBfs) || (dijkstraEdges && !inDijkstraPath)) ? "none" : "auto";
 								return (
 									<g
 										key={n.key}
@@ -408,7 +512,12 @@ export function BrazilAirportMap() {
 										opacity={nodeOpacity}
 										pointerEvents={nodePointerEvents}
 										onMouseDown={(e) => e.stopPropagation()}
-										onClick={() => { setSelectedKey(n.key === selectedKey ? null : n.key); setSelectedRegion(null); }}
+											onClick={() => {
+											if (showRouteTree && applyRouteTreeNodeSelection(n.key)) return;
+											if (showRouteTree) return;
+											setSelectedKey(n.key === selectedKey ? null : n.key);
+											setSelectedRegion(null);
+										}}
 										onMouseEnter={(e) => {
 											const rect = svgRef.current!.getBoundingClientRect();
 											setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, label: nd.label, city: nd.city, region: nd.region });
@@ -418,8 +527,8 @@ export function BrazilAirportMap() {
 										<circle
 											cx={px} cy={py} r={r}
 											fill={color}
-											stroke={isSelected ? "#1e293b" : inDijkstraPath ? "#f59e0b" : "#fff"}
-											strokeWidth={isSelected ? 2 / scale : inDijkstraPath ? 2 / scale : 1.5 / scale}
+												stroke={isSelected ? "#1e293b" : routeTreeActive ? ((nd.route_colors?.length ?? 0) > 1 ? "#111827" : nd.route_colors?.[0] ?? "#fff") : inDijkstraPath ? "#f59e0b" : "#fff"}
+												strokeWidth={isSelected ? 2 / scale : routeTreeActive ? 1.8 / scale : inDijkstraPath ? 2 / scale : 1.5 / scale}
 										/>
 										<text x={px} y={py - r - 2 / scale} textAnchor="middle" fontSize={10 / scale} fontWeight="600" fill="#1e293b" pointerEvents="none">
 											{nd.label}
@@ -428,7 +537,7 @@ export function BrazilAirportMap() {
 								);
 							})}
 
-						{dijkstraResult?.destKey && (
+						{!routeTreeActive && dijkstraResult?.destKey && (
 							<AirplaneAnimation
 								pathKeys={getPath(dijkstraResult.prev, dijkstraResult.destKey)}
 								nodeMap={nodeMap}
@@ -473,9 +582,9 @@ export function BrazilAirportMap() {
 
 				{/* Detail panel — animated slide-in from right */}
 				<AnimatePresence>
-				{(selectedKey || selectedRegion || showDijkstra || showBfs) && (
+				{(showRouteTree || selectedKey || selectedRegion || showDijkstra || showBfs) && (
 					<motion.div
-						key={showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
+						key={showRouteTree ? "route-tree" : showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
 						initial={{ width: 0, opacity: 0 }}
 						animate={{ width: panelWidth, opacity: 1 }}
 						exit={{ width: 0, opacity: 0 }}
@@ -483,7 +592,18 @@ export function BrazilAirportMap() {
 						className="relative shrink-0 overflow-hidden"
 					>
 						<div className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400" onMouseDown={startResize} />
-						{showBfs ? (
+						{showRouteTree ? (
+							<RouteTreePanel
+								graph={graph}
+								routes={routeSelections}
+								setRoutes={updateRouteSelections}
+								data={routeTree}
+								onResult={setRouteTree}
+								selectionTarget={routeSelectionTarget}
+								setSelectionTarget={setRouteSelectionTarget}
+								onClose={() => { toggleRouteTree(false); }}
+							/>
+						) : showBfs ? (
 							<BfsPanel
 								graph={graph}
 								onResult={(r) => setBfsResult(r)}
@@ -506,21 +626,32 @@ export function BrazilAirportMap() {
 			</div>
 
 			<footer className="shrink-0 border-t border-zinc-200 bg-white px-4 py-2.5">
-				<ul className="flex flex-wrap gap-x-4 gap-y-1.5">
-					{Object.entries(REGION_COLORS).map(([region, color]) => (
-						<li
-							key={region}
-							className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-zinc-100"
-							onClick={() => {
-								setSelectedRegion((prev) => (prev === region ? null : region));
-								setSelectedKey(null);
-							}}
-						>
-							<span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: color, opacity: selectedRegion && selectedRegion !== region ? 0.3 : 1 }} />
-							<span className={`text-xs ${selectedRegion === region ? "font-semibold text-zinc-800" : "text-zinc-600"}`}>{region}</span>
-						</li>
-					))}
-				</ul>
+				{routeTreeActive ? (
+					<ul className="flex flex-wrap gap-x-4 gap-y-1.5">
+						{routeTreeLegend.map((route) => (
+							<li key={route.id} className="flex items-center gap-1.5 rounded px-1 py-0.5">
+								<span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: route.color }} />
+								<span className="text-xs text-zinc-600">{route.label}</span>
+							</li>
+						))}
+					</ul>
+				) : (
+					<ul className="flex flex-wrap gap-x-4 gap-y-1.5">
+						{Object.entries(REGION_COLORS).map(([region, color]) => (
+							<li
+								key={region}
+								className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-zinc-100"
+								onClick={() => {
+									setSelectedRegion((prev) => (prev === region ? null : region));
+									setSelectedKey(null);
+								}}
+							>
+								<span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: color, opacity: selectedRegion && selectedRegion !== region ? 0.3 : 1 }} />
+								<span className={`text-xs ${selectedRegion === region ? "font-semibold text-zinc-800" : "text-zinc-600"}`}>{region}</span>
+							</li>
+						))}
+					</ul>
+				)}
 			</footer>
 		</div>
 	);

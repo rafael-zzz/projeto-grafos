@@ -94,6 +94,7 @@ def cmd_routes(_args):
 
     export_routes(results)
 
+
 COMMANDS = {
     "solve": (cmd_solve, []),
     "bfs": (cmd_bfs, None),
@@ -102,15 +103,17 @@ COMMANDS = {
     "routes": (cmd_routes, []),
 }
 
+
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in COMMANDS:
-        print("Uso: python3 cli.py [solve|bfs|dfs|dijkstra] [args...]")
+        print("Uso: python3 cli.py [solve|bfs|dfs|dijkstra|routes] [args...]")
         sys.exit(0 if len(sys.argv) < 2 else 1)
 
     cmd = sys.argv[1]
     rest = sys.argv[2:]
     fn, _ = COMMANDS[cmd]
     fn(rest)
+
 
 if __name__ == "__main__":
     main()

@@ -11,7 +11,7 @@ const BrazilAirportMap = dynamic(
 type Entrega = 1 | 2;
 
 const ENTREGAS: { id: Entrega; label: string; description: string }[] = [
-  { id: 1, label: "Entrega 1", description: "Grafo de aeroportos, BFS, DFS, Dijkstra" },
+  { id: 1, label: "Entrega 1", description: "Grafo de aeroportos, BFS, DFS, Dijkstra, percurso em árvore" },
   { id: 2, label: "Entrega 2", description: "Em desenvolvimento" },
 ];
 
