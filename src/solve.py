@@ -10,6 +10,7 @@ from metrics.metrics_exporter import (
     export_ego_metrics,
     export_degrees_csv,
 )
+from viz import export_route_tree_artifacts
 
 
 def _undirected_edges(graph):
@@ -78,6 +79,8 @@ def solve():
 
     ego_data = _build_ego_data(graph)
     export_ego_metrics(ego_data)
+
+    export_route_tree_artifacts(graph)
 
     degrees = {icao: len(node.edges) for icao, node in graph.nodes.items()}
     export_degrees_csv(degrees)

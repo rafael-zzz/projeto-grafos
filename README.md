@@ -13,6 +13,7 @@ Gera os arquivos em `out/`:
 - `graus.csv` — grau de cada aeroporto
 - `ego_aeroportos.csv` / `.json` — métricas de rede ego por aeroporto
 - `graph.json` — exportado também para `frontend/public/`
+- `arvore_percurso.png` / `arvore_percurso.html` — árvore de percurso dos caminhos obrigatórios
 
 ## CLI
 
