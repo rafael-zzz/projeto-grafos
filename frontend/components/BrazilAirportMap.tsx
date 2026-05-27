@@ -9,6 +9,7 @@ import { RegionPanel } from "@/components/RegionPanel";
 import { DijkstraPanel } from "@/components/DijkstraPanel";
 import { BfsPanel } from "@/components/BfsPanel";
 import { DfsPanel } from "@/components/DfsPanel";
+import { ChartsPanel } from "@/components/ChartsPanel";
 import { type DijkstraResult, getHighlightedEdges, getPath } from "@/lib/graph/dijkstra";
 import { type BfsResult, getBfsTreeEdges, bfsLevelColor } from "@/lib/graph/bfs";
 import { type DfsResult, getDfsTreeEdges, dfsLevelColor } from "@/lib/graph/dfs";
@@ -163,6 +164,7 @@ export function BrazilAirportMap() {
     const [bfsResult, setBfsResult] = useState<BfsResult | null>(null);
     const [showDfs, setShowDfs] = useState(false);
     const [dfsResult, setDfsResult] = useState<DfsResult | null>(null);
+    const [showAnalytics, setShowAnalytics] = useState(false);
     const [panelWidth, setPanelWidth] = useState(288);
     const [isPanelResizing, setIsPanelResizing] = useState(false);
     const isResizing = useRef(false);
@@ -274,22 +276,28 @@ export function BrazilAirportMap() {
              </div>
              <div className="flex items-center gap-2">
                 <button
-                   onClick={() => { setShowBfs((v) => !v); setShowDfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   onClick={() => { setShowBfs((v) => !v); setShowDfs(false); setShowDijkstra(false); setShowAnalytics(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showBfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
                    BFS
                 </button>
                 <button
-                   onClick={() => { setShowDfs((v) => !v); setShowBfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   onClick={() => { setShowDfs((v) => !v); setShowBfs(false); setShowDijkstra(false); setShowAnalytics(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
                    DFS
                 </button>
                 <button
-                   onClick={() => { setShowDijkstra((v) => !v); setShowBfs(false); setShowDfs(false); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
+                   onClick={() => { setShowDijkstra((v) => !v); setShowBfs(false); setShowDfs(false); setShowAnalytics(false); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDijkstra ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
                    Dijkstra
+                </button>
+                <button
+                   onClick={() => { setShowAnalytics((v) => !v); setShowBfs(false); setShowDfs(false); setShowDijkstra(false); setDijkstraResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showAnalytics ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+                >
+                   Análises
                 </button>
              </div>
           </header>
@@ -477,17 +485,23 @@ export function BrazilAirportMap() {
              </div>
 
              <AnimatePresence>
-             {(selectedKey || selectedRegion || showDijkstra || showBfs || showDfs) && (
+             {(selectedKey || selectedRegion || showDijkstra || showBfs || showDfs || showAnalytics) && (
                 <motion.div
-                   key={showDfs ? "dfs" : showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
+                   key={showAnalytics ? "analytics" : showDfs ? "dfs" : showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
                    initial={{ width: 0, opacity: 0 }}
-                   animate={{ width: panelWidth, opacity: 1 }}
+                   animate={{ width: showAnalytics ? Math.max(panelWidth, 380) : panelWidth, opacity: 1 }}
                    exit={{ width: 0, opacity: 0 }}
                    transition={isPanelResizing ? { duration: 0 } : { duration: 0.28, ease: "easeInOut" }}
                    className="relative shrink-0 overflow-hidden"
                 >
                    <div className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400" onMouseDown={startResize} />
-                   {showDfs ? (
+                   {showAnalytics ? (
+                      <ChartsPanel
+                         graph={graph}
+                         bfsResult={bfsResult}
+                         onClose={() => setShowAnalytics(false)}
+                      />
+                   ) : showDfs ? (
                       <DfsPanel
                          graph={graph}
                          onResult={(r) => setDfsResult(r)}
