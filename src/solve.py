@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from inout import load_graph, export_graph_json
+from graphs.io import load_graph, export_graph_json
 from metrics.metrics_exporter import (
     export_global_metrics_json,
     export_regions_metrics_json,

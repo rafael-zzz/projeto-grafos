@@ -1,17 +1,13 @@
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import pytest
-from graph.graph import Graph
-from algorithm.dfs import DFS
+from graphs.graph import Graph
+from graphs.algorithms import DFS
 
 
 @pytest.fixture
 def graph_without_cycle():
     g = Graph()
     for icao in ["A", "B", "C", "D"]:
-        g.add_node(icao, icao, icao, 1, "R1")
+        g.add_node(icao, icao, "R1", 0.0, 0.0)
     g.nodes["A"].add_edge(g.nodes["B"], 1)
     g.nodes["B"].add_edge(g.nodes["C"], 1)
     g.nodes["A"].add_edge(g.nodes["D"], 1)
@@ -22,7 +18,7 @@ def graph_without_cycle():
 def graph_with_cycle():
     g = Graph()
     for icao in ["A", "B", "C"]:
-        g.add_node(icao, icao, icao, 1, "R1")
+        g.add_node(icao, icao, "R1", 0.0, 0.0)
     g.nodes["A"].add_edge(g.nodes["B"], 1)
     g.nodes["B"].add_edge(g.nodes["C"], 1)
     g.nodes["C"].add_edge(g.nodes["A"], 1)
