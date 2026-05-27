@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import type { GraphData, RouteTreeData } from "@/lib/graph/types";
 import {
 	buildRouteTreeData,
@@ -29,6 +29,20 @@ export function RouteTreePanel({
 	onClose: () => void;
 }) {
 	const [error, setError] = useState<string | null>(null);
+	const [hasImage, setHasImage] = useState(false);
+
+	useEffect(() => {
+		let mounted = true;
+		fetch('/out/arvore_percurso.png', { method: 'HEAD' })
+			.then((r) => {
+				if (!mounted) return;
+				if (r.ok) setHasImage(true);
+			})
+			.catch(() => {});
+		return () => {
+			mounted = false;
+		};
+	}, []);
 
 	const sharedEdges = data?.edges.filter((edge) => (edge.attributes.routes?.length ?? 0) > 1) ?? [];
 	const editingNote = selectionTarget ? `Clique no mapa para preencher ${selectionTarget.field === "origin" ? "a origem" : "o destino"}.` : "Clique em um campo e depois no mapa para preencher.";
@@ -241,6 +255,30 @@ export function RouteTreePanel({
 						))}
 					</div>
 				)}
+
+				<div className="border-t border-zinc-100 px-4 py-3">
+					<div className="flex items-center justify-between gap-2">
+						<p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Visualização HTML</p>
+						<a href="/out/arvore_percurso.html" target="_blank" rel="noreferrer" className="text-[10px] font-semibold text-zinc-500 hover:text-zinc-800">
+							Abrir em nova aba
+						</a>
+					</div>
+					<div className="mt-3 overflow-hidden rounded border border-zinc-200 bg-zinc-50 px-4 py-3">
+						<p className="text-xs text-zinc-600">Visualização: <strong>out/</strong>. Versão estática:</p>
+						{hasImage ? (
+							<div className="mt-3">
+								<img src="/out/arvore_percurso.png" alt="Árvore de percurso" className="w-full h-auto border" />
+							</div>
+						) : (
+							<ul className="mt-2 text-xs text-zinc-600">
+								<li><a href="/graph.json" className="text-zinc-700 underline">/graph.json</a> — Dump do grafo pela visualização.</li>
+								<li><a href="/out/arvore_percurso.html" className="text-zinc-700 underline">out/arvore_percurso.html</a> — HTML gerado.</li>
+								<li><a href="/out/arvore_percurso.png" className="text-zinc-700 underline">out/arvore_percurso.png</a> — Imagem estática gerada.</li>
+							</ul>
+						)}
+						<p className="mt-3 text-[10px] text-zinc-400"></p>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
