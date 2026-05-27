@@ -1,17 +1,13 @@
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import pytest
-from graph.graph import Graph
-from algorithm.bfs import BFS
+from graphs.graph import Graph
+from graphs.algorithms import BFS
 
 
 @pytest.fixture
 def linear_graph():
     g = Graph()
     for icao in ["A", "B", "C", "D"]:
-        g.add_node(icao, icao, icao, 1, "R1")
+        g.add_node(icao, icao, "R1", 0.0, 0.0)
     g.nodes["A"].add_edge(g.nodes["B"], 1)
     g.nodes["B"].add_edge(g.nodes["C"], 1)
     g.nodes["C"].add_edge(g.nodes["D"], 1)
@@ -22,7 +18,7 @@ def linear_graph():
 def branching_graph():
     g = Graph()
     for icao in ["A", "B", "C", "D", "E"]:
-        g.add_node(icao, icao, icao, 1, "R1")
+        g.add_node(icao, icao, "R1", 0.0, 0.0)
     g.nodes["A"].add_edge(g.nodes["B"], 1)
     g.nodes["A"].add_edge(g.nodes["C"], 1)
     g.nodes["B"].add_edge(g.nodes["D"], 1)
@@ -60,7 +56,7 @@ def test_bfs_order_by_level(branching_graph):
 
 def test_isolated_node():
     g = Graph()
-    g.add_node("X", "X", "X", 1, "R1")
+    g.add_node("X", "X", "R1", 0.0, 0.0)
     order, levels = BFS(g, g.nodes["X"])
     assert order == ["X"]
     assert levels["X"] == 0

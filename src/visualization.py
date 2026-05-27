@@ -5,9 +5,10 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT_DIR / "out"
+DATA_DIR = ROOT_DIR / "data"
 DEGREES_CSV = OUT_DIR / "graus.csv"
 REGION_METRICS_JSON = OUT_DIR / "regioes.json"
-REGION_FLOWS_CSV = OUT_DIR / "flight_regions.csv"
+REGION_FLOWS_CSV = DATA_DIR / "flight_regions.csv"
 NOTES_MD = OUT_DIR / "notas_analiticas.md"
 
 
