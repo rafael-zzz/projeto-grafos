@@ -9,8 +9,10 @@ import { RegionPanel } from "@/components/RegionPanel";
 import { DijkstraPanel } from "@/components/DijkstraPanel";
 import { BfsPanel } from "@/components/BfsPanel";
 import { RouteTreePanel } from "@/components/RouteTreePanel";
+import { DfsPanel } from "@/components/DfsPanel";
 import { type DijkstraResult, getHighlightedEdges, getPath } from "@/lib/graph/dijkstra";
 import { type BfsResult, getBfsTreeEdges, bfsLevelColor } from "@/lib/graph/bfs";
+import { type DfsResult, getDfsTreeEdges, dfsLevelColor } from "@/lib/graph/dfs";
 import { createRouteSelection, type RouteSelection, type RouteSelectionTarget } from "@/lib/graph/routeTree";
 
 // ─── GeoJSON ─────────────────────────────────────────────────────────────────
@@ -169,9 +171,11 @@ export function BrazilAirportMap() {
 	const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 	const [showDijkstra, setShowDijkstra] = useState(false);
 	const [dijkstraResult, setDijkstraResult] = useState<DijkstraResult | null>(null);
-	const [showBfs, setShowBfs] = useState(false);
-	const [bfsResult, setBfsResult] = useState<BfsResult | null>(null);
-	const [showRouteTree, setShowRouteTree] = useState(false);
+    const [showBfs, setShowBfs] = useState(false);
+    const [bfsResult, setBfsResult] = useState<BfsResult | null>(null);
+    const [showDfs, setShowDfs] = useState(false);
+    const [dfsResult, setDfsResult] = useState<DfsResult | null>(null);
+    const [showRouteTree, setShowRouteTree] = useState(false);
 	const [panelWidth, setPanelWidth] = useState(288);
 	const [isPanelResizing, setIsPanelResizing] = useState(false);
 	const isResizing = useRef(false);
@@ -293,366 +297,395 @@ export function BrazilAirportMap() {
 			</div>
 		);
 	}
+    const routeTreeActive = showRouteTree && routeTree !== null && !showBfs && !showDijkstra && !showDfs;
+    const displayGraph = routeTreeActive ? routeTree : graph;
+    const nodeMap = new Map(displayGraph.nodes.map((n) => [n.key, { ...n.attributes, pos: project(n.attributes.x, n.attributes.y) }]));
+    const globalDensity = displayGraph.nodes.length < 2 ? 0 : (2 * displayGraph.edges.length) / (displayGraph.nodes.length * (displayGraph.nodes.length - 1));
+    const routeTreeLegend = routeTree?.routes ?? [];
+    const { x: tx, y: ty, scale } = tr;
+    const dijkstraEdges = !routeTreeActive && dijkstraResult ? getHighlightedEdges(dijkstraResult.prev, dijkstraResult.destKey) : null;
+    const bfsTreeEdges = !routeTreeActive && bfsResult ? getBfsTreeEdges(bfsResult.prev) : null;
+    const dfsTreeEdges = !routeTreeActive && dfsResult ? getDfsTreeEdges(dfsResult.prev) : null;
 
-	const routeTreeActive = showRouteTree && routeTree !== null && !showBfs && !showDijkstra;
-	const displayGraph = routeTreeActive ? routeTree : graph;
-	const nodeMap = new Map(displayGraph.nodes.map((n) => [n.key, { ...n.attributes, pos: project(n.attributes.x, n.attributes.y) }]));
-	const globalDensity = displayGraph.nodes.length < 2 ? 0 : (2 * displayGraph.edges.length) / (displayGraph.nodes.length * (displayGraph.nodes.length - 1));
-	const routeTreeLegend = routeTree?.routes ?? [];
-	const { x: tx, y: ty, scale } = tr;
-	const dijkstraEdges = !routeTreeActive && dijkstraResult ? getHighlightedEdges(dijkstraResult.prev, dijkstraResult.destKey) : null;
-	const bfsTreeEdges = !routeTreeActive && bfsResult ? getBfsTreeEdges(bfsResult.prev) : null;
+    return (
+       <div className="flex h-full w-full flex-col bg-zinc-50">
+          <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3 flex items-center justify-between">
+             <div>
+                <h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                   {routeTreeActive
+                      ? `Rotas: ${routeTree.routes.length} · Nós: ${displayGraph.nodes.length} · Arestas: ${displayGraph.edges.length}`
+                      : `Ordem: ${displayGraph.nodes.length} · Tamanho: ${displayGraph.edges.length} · Densidade: ${globalDensity.toFixed(6)}`}
+                </p>
+             </div>
+             <div className="flex items-center gap-2">
+                <button
+                   onClick={() => { toggleRouteTree(false); setShowBfs((v) => !v); setShowDfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showBfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+                >
+                   BFS
+                </button>
+                <button
+                   onClick={() => { toggleRouteTree(false); setShowDfs((v) => !v); setShowBfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+                >
+                   DFS
+                </button>
+                <button
+                   onClick={() => { toggleRouteTree(false); setShowDijkstra((v) => !v); setShowBfs(false); setShowDfs(false); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
+                   className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDijkstra ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+                >
+                   Dijkstra
+                </button>
+                <button
+                   onClick={() => { toggleRouteTree(!showRouteTree); setShowBfs(false); setShowDfs(false); setShowDijkstra(false); setBfsResult(null); setDfsResult(null); setDijkstraResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showRouteTree || routeTreeActive ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
+                >
+                   Percurso
+                </button>
+             </div>
+          </header>
 
-	return (
-		<div className="flex h-full w-full flex-col bg-zinc-50">
-			<header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3 flex items-center justify-between">
-				<div>
-					<h1 className="text-sm font-semibold text-zinc-800">Rede de Aeroportos do Brasil</h1>
-					<p className="mt-0.5 text-xs text-zinc-500">
-						{routeTreeActive
-							? `Rotas: ${routeTree.routes.length} · Nós: ${displayGraph.nodes.length} · Arestas: ${displayGraph.edges.length}`
-							: `Ordem: ${displayGraph.nodes.length} · Tamanho: ${displayGraph.edges.length} · Densidade: ${globalDensity.toFixed(6)}`}
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<button
-						onClick={() => { setShowRouteTree(false); setShowBfs((v) => !v); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
-						className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showBfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
-					>
-						BFS
-					</button>
-					<button
-						onClick={() => { setShowRouteTree(false); setShowDijkstra((v) => !v); setShowBfs(false); setBfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
-							className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${routeTreeActive ? "border-zinc-200 bg-white text-zinc-400" : showDijkstra ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
-						disabled={false}
-					>
-						Dijkstra
-					</button>
-					<button
-						onClick={() => { toggleRouteTree(!showRouteTree); setShowBfs(false); setShowDijkstra(false); setBfsResult(null); setDijkstraResult(null); setSelectedKey(null); setSelectedRegion(null); }}
-							disabled={false}
-							className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${(showRouteTree || routeTreeActive) ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
-					>
-						Percurso
-					</button>
-				</div>
-			</header>
-			<div className="flex min-h-0 flex-1">
-				{/* Map */}
-				<div className="relative min-w-0 flex-1 overflow-hidden">
-					<svg
-						ref={svgRef}
-						className="h-full w-full cursor-grab active:cursor-grabbing select-none"
-						viewBox={`0 0 ${VW} ${VH}`}
-						preserveAspectRatio="xMidYMid meet"
-						onWheel={onWheel}
-						onMouseDown={onMouseDown}
-						onMouseMove={onMouseMove}
-						onMouseUp={onMouseUp}
-						onMouseLeave={onMouseUp}
-					>
-						<defs>
-							<marker id="arrow" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
-								<path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8" fillOpacity="0.7" />
-							</marker>
-							{Object.entries(REGION_COLORS).map(([region, color]) => (
-								<marker
-									key={region}
-									id={`arrow-${region.replace(/\W/g, "")}`}
-									viewBox="0 0 6 6"
-									refX="6"
-									refY="3"
-									markerUnits="strokeWidth"
-									markerWidth="6"
-									markerHeight="6"
-									orient="auto"
-								>
-									<path d="M0,0 L6,3 L0,6 Z" fill={color} />
-								</marker>
-							))}
-							<marker id="arrow-dijkstra" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
-								<path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b" />
-							</marker>
-							<marker id="arrow-bfs" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
-								<path d="M0,0 L6,3 L0,6 Z" fill="#0ea5e9" />
-							</marker>
-								{routeTreeActive && routeTreeLegend.map((route) => (
-									<marker
-										key={route.id}
-										id={`arrow-route-${route.id}`}
-										viewBox="0 0 6 6"
-										refX="6"
-										refY="3"
-										markerUnits="strokeWidth"
-										markerWidth="6"
-										markerHeight="6"
-										orient="auto"
-									>
-										<path d="M0,0 L6,3 L0,6 Z" fill={route.color} />
-									</marker>
-								))}
-								{routeTreeActive && (
-									<marker id="arrow-route-shared" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
-										<path d="M0,0 L6,3 L0,6 Z" fill="#111827" />
-									</marker>
-								)}
-						</defs>
-						<g transform={`translate(${tx},${ty}) scale(${scale})`}>
-							{geo.features.map((f, i) => {
-								const fRegion = featureRegion(f);
-								const isSelectedRegion = fRegion === selectedRegion;
-								return (
-									<path
-										key={i}
-										d={featureToD(f)}
-										fill={stateColor(f)}
-										fillOpacity={selectedRegion ? (isSelectedRegion ? 0.55 : 0.08) : 0.25}
-										stroke="#fff"
-										strokeWidth={1 / scale}
-										className={fRegion ? "cursor-pointer" : undefined}
-										onClick={() => {
-											if (routeTreeActive || didDrag.current || !fRegion) return;
-											setSelectedRegion((prev) => (prev === fRegion ? null : fRegion));
-											setSelectedKey(null);
-										}}
-									/>
-								);
-							})}
+          <div className="flex min-h-0 flex-1">
+             <div className="relative min-w-0 flex-1 overflow-hidden">
+                <svg
+                   ref={svgRef}
+                   className="h-full w-full cursor-grab active:cursor-grabbing select-none"
+                   viewBox={`0 0 ${VW} ${VH}`}
+                   preserveAspectRatio="xMidYMid meet"
+                   onWheel={onWheel}
+                   onMouseDown={onMouseDown}
+                   onMouseMove={onMouseMove}
+                   onMouseUp={onMouseUp}
+                   onMouseLeave={onMouseUp}
+                >
+                   <defs>
+                      <marker id="arrow" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+                         <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8" fillOpacity="0.7" />
+                      </marker>
+                      {Object.entries(REGION_COLORS).map(([region, color]) => (
+                         <marker
+                            key={region}
+                            id={`arrow-${region.replace(/\W/g, "")}`}
+                            viewBox="0 0 6 6"
+                            refX="6"
+                            refY="3"
+                            markerUnits="strokeWidth"
+                            markerWidth="6"
+                            markerHeight="6"
+                            orient="auto"
+                         >
+                            <path d="M0,0 L6,3 L0,6 Z" fill={color} />
+                         </marker>
+                      ))}
+                      <marker id="arrow-dijkstra" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+                         <path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b" />
+                      </marker>
+                      <marker id="arrow-bfs" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+                         <path d="M0,0 L6,3 L0,6 Z" fill="#0ea5e9" />
+                      </marker>
+                      <marker id="arrow-dfs" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+                         <path d="M0,0 L6,3 L0,6 Z" fill="#10b981" />
+                      </marker>
+                      {routeTreeActive && routeTreeLegend.map((route) => (
+                         <marker
+                            key={route.id}
+                            id={`arrow-route-${route.id}`}
+                            viewBox="0 0 6 6"
+                            refX="6"
+                            refY="3"
+                            markerUnits="strokeWidth"
+                            markerWidth="6"
+                            markerHeight="6"
+                            orient="auto"
+                         >
+                            <path d="M0,0 L6,3 L0,6 Z" fill={route.color} />
+                         </marker>
+                      ))}
+                      {routeTreeActive && (
+                         <marker id="arrow-route-shared" viewBox="0 0 6 6" refX="6" refY="3" markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M0,0 L6,3 L0,6 Z" fill="#111827" />
+                         </marker>
+                      )}
+                   </defs>
+                   <g transform={`translate(${tx},${ty}) scale(${scale})`}>
+                      {geo.features.map((f, i) => {
+                         const fRegion = featureRegion(f);
+                         const isSelectedRegion = fRegion === selectedRegion;
+                         return (
+                            <path
+                               key={i}
+                               d={featureToD(f)}
+                               fill={stateColor(f)}
+                               fillOpacity={selectedRegion ? (isSelectedRegion ? 0.55 : 0.08) : 0.25}
+                               stroke="#fff"
+                               strokeWidth={1 / scale}
+                               className={fRegion ? "cursor-pointer" : undefined}
+                               onClick={() => {
+                                  if (routeTreeActive || didDrag.current || !fRegion) return;
+                                  setSelectedRegion((prev) => (prev === fRegion ? null : fRegion));
+                                  setSelectedKey(null);
+                               }}
+                            />
+                         );
+                      })}
 
-							{displayGraph.edges.map((e) => {
-								const s = nodeMap.get(e.source);
-								const d = nodeMap.get(e.target);
-								if (!s || !d) return null;
-								const dx = d.pos[0] - s.pos[0];
-								const dy = d.pos[1] - s.pos[1];
-								const dist = Math.sqrt(dx * dx + dy * dy);
-								if (dist === 0) return null;
-								const r = 6 / scale;
-									const inDijkstra = dijkstraEdges ? dijkstraEdges.has(e.key) : null;
-									const inBfsTree = bfsTreeEdges ? bfsTreeEdges.has(e.key) : null;
-									const inRegion = !selectedRegion || (s.region === selectedRegion && d.region === selectedRegion);
-									const routeIds = e.attributes.routes ?? [];
-									const routeColors = e.attributes.route_colors ?? [];
-									const isRouteTreeEdge = routeTreeActive;
-									const isSharedRoute = routeIds.length > 1;
-									const edgeColor = isRouteTreeEdge
-										? (isSharedRoute ? "#111827" : routeColors[0] ?? "#f59e0b")
-										: inBfsTree
-											? "#0ea5e9"
-											: inDijkstra
-												? "#f59e0b"
-												: selectedRegion && inRegion
-													? (REGION_COLORS[selectedRegion] ?? "#94a3b8")
-													: "#94a3b8";
-									const markerId = isRouteTreeEdge
-										? (isSharedRoute ? "arrow-route-shared" : `arrow-route-${routeIds[0]}`)
-										: inBfsTree
-											? "arrow-bfs"
-											: inDijkstra
-												? "arrow-dijkstra"
-												: selectedRegion && inRegion
-													? `arrow-${selectedRegion.replace(/\W/g, "")}`
-													: "arrow";
-									const opacity = isRouteTreeEdge
-										? 0.92
-										: bfsTreeEdges
-											? (inBfsTree ? 0.85 : 0)
-											: dijkstraEdges
-												? (inDijkstra ? 0.95 : 0)
-												: selectedRegion
-													? (inRegion ? 0.8 : 0)
-													: 0.45;
-								return (
-									<line
-										key={e.key}
-										x1={s.pos[0]}
-										y1={s.pos[1]}
-											x2={d.pos[0] - (dx / dist) * r}
-											y2={d.pos[1] - (dy / dist) * r}
-										stroke={edgeColor}
-											strokeWidth={isRouteTreeEdge ? ((isSharedRoute ? 2.5 : 2) / scale) : inDijkstra ? 2 / scale : selectedRegion && inRegion ? 1.5 / scale : 1 / scale}
-										strokeOpacity={opacity}
-										markerEnd={opacity > 0 ? `url(#${markerId})` : undefined}
-									/>
-								);
-							})}
+                      {displayGraph.edges.map((e) => {
+                         const s = nodeMap.get(e.source);
+                         const d = nodeMap.get(e.target);
+                         if (!s || !d) return null;
+                         const dx = d.pos[0] - s.pos[0];
+                         const dy = d.pos[1] - s.pos[1];
+                         const dist = Math.sqrt(dx * dx + dy * dy);
+                         if (dist === 0) return null;
+                         const r = 6 / scale;
+                         const inDijkstra = dijkstraEdges ? dijkstraEdges.has(e.key) : null;
+                         const inBfsTree = bfsTreeEdges ? bfsTreeEdges.has(e.key) : null;
+                         const inDfsTree = dfsTreeEdges ? dfsTreeEdges.has(e.key) : null;
+                         const inRegion = !selectedRegion || (s.region === selectedRegion && d.region === selectedRegion);
+                         const routeIds = e.attributes.routes ?? [];
+                         const routeColors = e.attributes.route_colors ?? [];
+                         const isRouteTreeEdge = routeTreeActive;
+                         const isSharedRoute = routeIds.length > 1;
+                         const edgeColor = isRouteTreeEdge
+                            ? (isSharedRoute ? "#111827" : routeColors[0] ?? "#f59e0b")
+                            : inDfsTree
+                               ? "#10b981"
+                               : inBfsTree
+                                  ? "#0ea5e9"
+                                  : inDijkstra
+                                     ? "#f59e0b"
+                                     : selectedRegion && inRegion
+                                        ? (REGION_COLORS[selectedRegion] ?? "#94a3b8")
+                                        : "#94a3b8";
+                         const markerId = isRouteTreeEdge
+                            ? (isSharedRoute ? "arrow-route-shared" : routeIds[0] ? `arrow-route-${routeIds[0]}` : "arrow")
+                            : inDfsTree
+                               ? "arrow-dfs"
+                               : inBfsTree
+                                  ? "arrow-bfs"
+                                  : inDijkstra
+                                     ? "arrow-dijkstra"
+                                     : selectedRegion && inRegion
+                                        ? `arrow-${selectedRegion.replace(/\W/g, "")}`
+                                        : "arrow";
+                         const opacity = isRouteTreeEdge
+                            ? 0.92
+                            : dfsTreeEdges
+                               ? (inDfsTree ? 0.85 : 0)
+                               : bfsTreeEdges
+                                  ? (inBfsTree ? 0.85 : 0)
+                                  : dijkstraEdges
+                                     ? (inDijkstra ? 0.95 : 0)
+                                     : selectedRegion
+                                        ? (inRegion ? 0.8 : 0)
+                                        : 0.45;
+                         return (
+                            <line
+                               key={e.key}
+                               x1={s.pos[0]}
+                               y1={s.pos[1]}
+                               x2={d.pos[0] - (dx / dist) * r}
+                               y2={d.pos[1] - (dy / dist) * r}
+                               stroke={edgeColor}
+                               strokeWidth={isRouteTreeEdge ? ((isSharedRoute ? 2.5 : 2) / scale) : inDfsTree ? 2 / scale : inDijkstra ? 2 / scale : selectedRegion && inRegion ? 1.5 / scale : 1 / scale}
+                               strokeOpacity={opacity}
+                               markerEnd={opacity > 0 ? `url(#${markerId})` : undefined}
+                            />
+                         );
+                      })}
 
-							{displayGraph.nodes.map((n) => {
-								const nd = nodeMap.get(n.key)!;
-									const bfsLevel = routeTreeActive ? undefined : bfsResult?.levels.get(n.key);
-									const inBfs = bfsLevel !== undefined;
-									const color = routeTreeActive
-										? ((nd.route_colors?.length ?? 0) > 1
-											? "#111827"
-											: nd.route_colors?.[0] ?? (REGION_COLORS[nd.region] ?? "#94a3b8"))
-										: bfsResult
-											? bfsLevelColor(bfsLevel ?? 0, bfsResult.maxLevel)
-											: (REGION_COLORS[nd.region] ?? "#94a3b8");
-								const [px, py] = nd.pos;
-									const r = routeTreeActive ? 7 / scale : 6 / scale;
-								const isSelected = n.key === selectedKey;
-								const inRegion = !selectedRegion || nd.region === selectedRegion;
-								const inDijkstraPath = dijkstraResult
-										? n.key === dijkstraResult.originKey ||
-											n.key === dijkstraResult.destKey ||
-											(dijkstraEdges ? [...dijkstraEdges].some((k) => k.startsWith(`${n.key}-`) || k.endsWith(`-${n.key}`)) : false)
-										: null;
-									const nodeOpacity = routeTreeActive
-										? 1
-										: bfsResult
-											? (inBfs ? 1 : 0)
-											: dijkstraEdges
-												? (inDijkstraPath ? 1 : 0)
-												: selectedRegion ? (inRegion ? 1 : 0.15) : 1;
-									const nodePointerEvents = routeTreeActive ? "auto" : ((bfsResult && !inBfs) || (dijkstraEdges && !inDijkstraPath)) ? "none" : "auto";
-								return (
-									<g
-										key={n.key}
-										className="cursor-pointer"
-										opacity={nodeOpacity}
-										pointerEvents={nodePointerEvents}
-										onMouseDown={(e) => e.stopPropagation()}
-											onClick={() => {
-											if (showRouteTree && applyRouteTreeNodeSelection(n.key)) return;
-											if (showRouteTree) return;
-											setSelectedKey(n.key === selectedKey ? null : n.key);
-											setSelectedRegion(null);
-										}}
-										onMouseEnter={(e) => {
-											const rect = svgRef.current!.getBoundingClientRect();
-											setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, label: nd.label, city: nd.city, region: nd.region });
-										}}
-										onMouseLeave={() => setTooltip(null)}
-									>
-										<circle
-											cx={px} cy={py} r={r}
-											fill={color}
-												stroke={isSelected ? "#1e293b" : routeTreeActive ? ((nd.route_colors?.length ?? 0) > 1 ? "#111827" : nd.route_colors?.[0] ?? "#fff") : inDijkstraPath ? "#f59e0b" : "#fff"}
-												strokeWidth={isSelected ? 2 / scale : routeTreeActive ? 1.8 / scale : inDijkstraPath ? 2 / scale : 1.5 / scale}
-										/>
-										<text x={px} y={py - r - 2 / scale} textAnchor="middle" fontSize={10 / scale} fontWeight="600" fill="#1e293b" pointerEvents="none">
-											{nd.label}
-										</text>
-									</g>
-								);
-							})}
+                      {displayGraph.nodes.map((n) => {
+                         const nd = nodeMap.get(n.key)!;
+                         const bfsLevel = routeTreeActive ? undefined : bfsResult?.levels.get(n.key);
+                         const inBfs = bfsLevel !== undefined;
+                         const dfsLevel = routeTreeActive ? undefined : dfsResult?.levels.get(n.key);
+                         const inDfs = dfsLevel !== undefined;
+                         const color = routeTreeActive
+                            ? ((nd.route_colors?.length ?? 0) > 1
+                               ? "#111827"
+                               : nd.route_colors?.[0] ?? (REGION_COLORS[nd.region] ?? "#94a3b8"))
+                            : dfsResult
+                               ? dfsLevelColor(dfsLevel ?? 0, dfsResult.maxLevel)
+                               : bfsResult
+                                  ? bfsLevelColor(bfsLevel ?? 0, bfsResult.maxLevel)
+                                  : (REGION_COLORS[nd.region] ?? "#94a3b8");
+                         const [px, py] = nd.pos;
+                         const r = routeTreeActive ? 7 / scale : 6 / scale;
+                         const isSelected = n.key === selectedKey;
+                         const inRegion = !selectedRegion || nd.region === selectedRegion;
+                         const inDijkstraPath = dijkstraResult
+                            ? n.key === dijkstraResult.originKey ||
+                               n.key === dijkstraResult.destKey ||
+                               (dijkstraEdges ? [...dijkstraEdges].some((k) => k.startsWith(`${n.key}-`) || k.endsWith(`-${n.key}`)) : false)
+                            : null;
+                         const nodeOpacity = routeTreeActive
+                            ? 1
+                            : dfsResult
+                               ? (inDfs ? 1 : 0)
+                               : bfsResult
+                                  ? (inBfs ? 1 : 0)
+                                  : dijkstraEdges
+                                     ? (inDijkstraPath ? 1 : 0)
+                                     : selectedRegion
+                                        ? (inRegion ? 1 : 0.15)
+                                        : 1;
+                         const nodePointerEvents = routeTreeActive ? "auto" : ((dfsResult && !inDfs) || (bfsResult && !inBfs) || (dijkstraEdges && !inDijkstraPath)) ? "none" : "auto";
+                         return (
+                            <g
+                               key={n.key}
+                               className="cursor-pointer"
+                               opacity={nodeOpacity}
+                               pointerEvents={nodePointerEvents}
+                               onMouseDown={(e) => e.stopPropagation()}
+                               onClick={() => {
+                                  if (showRouteTree && applyRouteTreeNodeSelection(n.key)) return;
+                                  if (showRouteTree) return;
+                                  setSelectedKey(n.key === selectedKey ? null : n.key);
+                                  setSelectedRegion(null);
+                               }}
+                               onMouseEnter={(e) => {
+                                  const rect = svgRef.current!.getBoundingClientRect();
+                                  setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, label: nd.label, city: nd.city, region: nd.region });
+                               }}
+                               onMouseLeave={() => setTooltip(null)}
+                            >
+                               <circle
+                                  cx={px}
+                                  cy={py}
+                                  r={r}
+                                  fill={color}
+                                  stroke={isSelected ? "#1e293b" : routeTreeActive ? ((nd.route_colors?.length ?? 0) > 1 ? "#111827" : nd.route_colors?.[0] ?? "#fff") : inDijkstraPath ? "#f59e0b" : "#fff"}
+                                  strokeWidth={isSelected ? 2 / scale : routeTreeActive ? 1.8 / scale : inDijkstraPath ? 2 / scale : 1.5 / scale}
+                               />
+                               <text x={px} y={py - r - 2 / scale} textAnchor="middle" fontSize={10 / scale} fontWeight="600" fill="#1e293b" pointerEvents="none">
+                                  {nd.label}
+                               </text>
+                            </g>
+                         );
+                      })}
 
-						{!routeTreeActive && dijkstraResult?.destKey && (
-							<AirplaneAnimation
-								pathKeys={getPath(dijkstraResult.prev, dijkstraResult.destKey)}
-								nodeMap={nodeMap}
-								scale={scale}
-							/>
-						)}
-						</g>
-					</svg>
+                      {!routeTreeActive && dijkstraResult?.destKey && (
+                         <AirplaneAnimation
+                            pathKeys={getPath(dijkstraResult.prev, dijkstraResult.destKey)}
+                            nodeMap={nodeMap}
+                            scale={scale}
+                         />
+                      )}
+                   </g>
+                </svg>
 
-					{tooltip && !selectedKey && (
-						<div className="pointer-events-none absolute z-10 rounded-md border border-zinc-200 bg-white px-3 py-2 shadow-md" style={{ left: tooltip.x + 14, top: tooltip.y - 10 }}>
-							<p className="text-sm font-semibold text-zinc-800">{tooltip.label}</p>
-							<p className="text-xs text-zinc-500">
-								{tooltip.city} · {tooltip.region}
-							</p>
-						</div>
-					)}
 
-					{/* Map zoom controls */}
-					<div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1">
-						<button
-							onClick={() => applyTransform((t) => ({ ...t, scale: Math.min(t.scale * 1.3, 12) }))}
-							className="flex size-8 items-center justify-center rounded border border-zinc-200 bg-white text-sm font-medium text-zinc-600 shadow-sm hover:bg-zinc-50"
-						>
-							+
-						</button>
-						<button
-							onClick={() => applyTransform((t) => ({ ...t, scale: Math.max(t.scale / 1.3, 0.5) }))}
-							className="flex size-8 items-center justify-center rounded border border-zinc-200 bg-white text-sm font-medium text-zinc-600 shadow-sm hover:bg-zinc-50"
-						>
-							−
-						</button>
-						<button
-							onClick={() => applyTransform(() => ({ x: 0, y: 0, scale: 1 }))}
-							className="flex size-8 items-center justify-center rounded border border-zinc-200 bg-white text-sm text-zinc-600 shadow-sm hover:bg-zinc-50"
-							title="Resetar zoom"
-						>
-							↺
-						</button>
-					</div>
-				</div>
+                {tooltip && !selectedKey && (
+                   <div className="pointer-events-none absolute z-10 rounded-md border border-zinc-200 bg-white px-3 py-2 shadow-md" style={{ left: tooltip.x + 14, top: tooltip.y - 10 }}>
+                      <p className="text-sm font-semibold text-zinc-800">{tooltip.label}</p>
+                      <p className="text-xs text-zinc-500">
+                         {tooltip.city} · {tooltip.region}
+                      </p>
+                   </div>
+                )}
 
-				{/* Detail panel — animated slide-in from right */}
-				<AnimatePresence>
-				{(showRouteTree || selectedKey || selectedRegion || showDijkstra || showBfs) && (
-					<motion.div
-						key={showRouteTree ? "route-tree" : showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
-						initial={{ width: 0, opacity: 0 }}
-						animate={{ width: panelWidth, opacity: 1 }}
-						exit={{ width: 0, opacity: 0 }}
-						transition={isPanelResizing ? { duration: 0 } : { duration: 0.28, ease: "easeInOut" }}
-						className="relative shrink-0 overflow-hidden"
-					>
-						<div className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400" onMouseDown={startResize} />
-						{showRouteTree ? (
-							<RouteTreePanel
-								graph={graph}
-								routes={routeSelections}
-								setRoutes={updateRouteSelections}
-								data={routeTree}
-								onResult={setRouteTree}
-								selectionTarget={routeSelectionTarget}
-								setSelectionTarget={setRouteSelectionTarget}
-								onClose={() => { toggleRouteTree(false); }}
-							/>
-						) : showBfs ? (
-							<BfsPanel
-								graph={graph}
-								onResult={(r) => setBfsResult(r)}
-								onClose={() => { setShowBfs(false); setBfsResult(null); }}
-							/>
-						) : showDijkstra ? (
-							<DijkstraPanel
-								graph={graph}
-								onResult={(r) => setDijkstraResult(r)}
-								onClose={() => { setShowDijkstra(false); setDijkstraResult(null); }}
-							/>
-						) : selectedKey ? (
-							<AirportPanel nodeKey={selectedKey} graph={graph} onClose={() => setSelectedKey(null)} />
-						) : (
-							<RegionPanel region={selectedRegion!} graph={graph} onClose={() => setSelectedRegion(null)} />
-						)}
-					</motion.div>
-				)}
-				</AnimatePresence>
-			</div>
+                <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1">
+                   <button
+                      onClick={() => applyTransform((t) => ({ ...t, scale: Math.min(t.scale * 1.3, 12) }))}
+                      className="flex size-8 items-center justify-center rounded border border-zinc-200 bg-white text-sm font-medium text-zinc-600 shadow-sm hover:bg-zinc-50"
+                   >
+                      +
+                   </button>
+                   <button
+                      onClick={() => applyTransform((t) => ({ ...t, scale: Math.max(t.scale / 1.3, 0.5) }))}
+                      className="flex size-8 items-center justify-center rounded border border-zinc-200 bg-white text-sm font-medium text-zinc-600 shadow-sm hover:bg-zinc-50"
+                   >
+                      −
+                   </button>
+                   <button
+                      onClick={() => applyTransform(() => ({ x: 0, y: 0, scale: 1 }))}
+                      className="flex size-8 items-center justify-center rounded border border-zinc-200 bg-white text-sm text-zinc-600 shadow-sm hover:bg-zinc-50"
+                      title="Resetar zoom"
+                   >
+                      ↺
+                   </button>
+                </div>
+             </div>
 
-			<footer className="shrink-0 border-t border-zinc-200 bg-white px-4 py-2.5">
-				{routeTreeActive ? (
-					<ul className="flex flex-wrap gap-x-4 gap-y-1.5">
-						{routeTreeLegend.map((route) => (
-							<li key={route.id} className="flex items-center gap-1.5 rounded px-1 py-0.5">
-								<span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: route.color }} />
-								<span className="text-xs text-zinc-600">{route.label}</span>
-							</li>
-						))}
-					</ul>
-				) : (
-					<ul className="flex flex-wrap gap-x-4 gap-y-1.5">
-						{Object.entries(REGION_COLORS).map(([region, color]) => (
-							<li
-								key={region}
-								className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-zinc-100"
-								onClick={() => {
-									setSelectedRegion((prev) => (prev === region ? null : region));
-									setSelectedKey(null);
-								}}
-							>
-								<span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: color, opacity: selectedRegion && selectedRegion !== region ? 0.3 : 1 }} />
-								<span className={`text-xs ${selectedRegion === region ? "font-semibold text-zinc-800" : "text-zinc-600"}`}>{region}</span>
-							</li>
-						))}
-					</ul>
-				)}
-			</footer>
-		</div>
-	);
+             <AnimatePresence>
+             {(showRouteTree || selectedKey || selectedRegion || showDijkstra || showBfs || showDfs) && (
+                <motion.div
+                   key={showRouteTree ? "route-tree" : showDfs ? "dfs" : showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
+                   initial={{ width: 0, opacity: 0 }}
+                   animate={{ width: panelWidth, opacity: 1 }}
+                   exit={{ width: 0, opacity: 0 }}
+                   transition={isPanelResizing ? { duration: 0 } : { duration: 0.28, ease: "easeInOut" }}
+                   className="relative shrink-0 overflow-hidden"
+                >
+                   <div className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400" onMouseDown={startResize} />
+                   {showRouteTree ? (
+                      <RouteTreePanel
+                         graph={graph}
+                         routes={routeSelections}
+                         setRoutes={updateRouteSelections}
+                         data={routeTree}
+                         onResult={setRouteTree}
+                         selectionTarget={routeSelectionTarget}
+                         setSelectionTarget={setRouteSelectionTarget}
+                         onClose={() => { toggleRouteTree(false); }}
+                      />
+                   ) : showDfs ? (
+                      <DfsPanel
+                         graph={graph}
+                         onResult={(r) => setDfsResult(r)}
+                         onClose={() => { setShowDfs(false); setDfsResult(null); }}
+                      />
+                   ) : showBfs ? (
+                      <BfsPanel
+                         graph={graph}
+                         onResult={(r) => setBfsResult(r)}
+                         onClose={() => { setShowBfs(false); setBfsResult(null); }}
+                      />
+                   ) : showDijkstra ? (
+                      <DijkstraPanel
+                         graph={graph}
+                         onResult={(r) => setDijkstraResult(r)}
+                         onClose={() => { setShowDijkstra(false); setDijkstraResult(null); }}
+                      />
+                   ) : selectedKey ? (
+                      <AirportPanel nodeKey={selectedKey} graph={graph} onClose={() => setSelectedKey(null)} />
+                   ) : (
+                      <RegionPanel region={selectedRegion!} graph={graph} onClose={() => setSelectedRegion(null)} />
+                   )}
+                </motion.div>
+             )}
+             </AnimatePresence>
+          </div>
+
+          <footer className="shrink-0 border-t border-zinc-200 bg-white px-4 py-2.5">
+             {routeTreeActive ? (
+                <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
+                   {routeTreeLegend.map((route) => (
+                      <li key={route.id} className="flex items-center gap-1.5 rounded px-1 py-0.5">
+                         <span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: route.color }} />
+                         <span className="text-xs text-zinc-600">{route.label}</span>
+                      </li>
+                   ))}
+                </ul>
+             ) : (
+                <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
+                   {Object.entries(REGION_COLORS).map(([region, color]) => (
+                      <li
+                         key={region}
+                         className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-zinc-100"
+                         onClick={() => {
+                            setSelectedRegion((prev) => (prev === region ? null : region));
+                            setSelectedKey(null);
+                         }}
+                      >
+                         <span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: color, opacity: selectedRegion && selectedRegion !== region ? 0.3 : 1 }} />
+                         <span className={`text-xs ${selectedRegion === region ? "font-semibold text-zinc-800" : "text-zinc-600"}`}>{region}</span>
+                      </li>
+                   ))}
+                </ul>
+             )}
+          </footer>
+       </div>
+    );
 }

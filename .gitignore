@@ -8,6 +8,8 @@ ENV/
 build/
 dist/
 *.egg-info/
+.claude
+claude/
 
 # --- Frontend (Next.js) ---
 # Baseado no gitignore do seu projeto

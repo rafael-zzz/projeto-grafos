@@ -1,10 +1,11 @@
 import csv
 import json
 import os
-from graph.graph import Graph
+import pandas as pd
+from .graph import Graph
 
-AIRPORTS_CSV = "../out/airports.csv"
-EDGES_CSV = "../out/edges.csv"
+AIRPORTS_CSV = "../data/airports.csv"
+EDGES_CSV = "../data/edges.csv"
 
 REGION_COLORS: dict[str, str] = {
     "Norte":        "#0d9488",
@@ -13,6 +14,53 @@ REGION_COLORS: dict[str, str] = {
     "Sudeste":      "#2563eb",
     "Sul":          "#16a34a",
 }
+
+
+def _build_graph_from_csv(nodes_path, edges_path):
+    g = Graph()
+
+    df_nodes = pd.read_csv(nodes_path)
+    for _, row in df_nodes.iterrows():
+        g.add_node(
+            icao=row["icao"],
+            city=row["cidade"],
+            region=row["regiao"],
+            lat=float(row["lat"]),
+            lon=float(row["lon"]),
+        )
+
+    df_edges = pd.read_csv(edges_path)
+    for _, row in df_edges.iterrows():
+        g.add_edge(
+            origin_icao=row["origem"],
+            destination_icao=row["destino"],
+            weight=float(row["peso"]),
+            flights=int(row["quantidade"]),
+            connection_type=row["tipo_conexao"],
+        )
+
+    return g
+
+
+def _validate_graph(graph: Graph) -> None:
+    if not graph.nodes:
+        raise ValueError("Graph has no nodes")
+
+    visited = set()
+
+    def dfs(icao: str) -> None:
+        visited.add(icao)
+        for edge in graph.nodes[icao].edges:
+            if edge.destination.icao not in visited:
+                dfs(edge.destination.icao)
+
+    start = next(iter(graph.nodes))
+    dfs(start)
+
+    disconnected = set(graph.nodes) - visited
+    if disconnected:
+        raise ValueError(f"Graph is not connected. Disconnected nodes: {disconnected}")
+
 
 def load_graph(
     airports_path: str = AIRPORTS_CSV,
@@ -25,9 +73,8 @@ def load_graph(
     if not os.path.exists(adjacencies_path):
         raise FileNotFoundError(f"Adjacencies file not found: {adjacencies_path}")
 
-    graph = build_graph_from_csv(airports_path, adjacencies_path)
-
-    validate_graph(graph)
+    graph = _build_graph_from_csv(airports_path, adjacencies_path)
+    _validate_graph(graph)
     return graph
 
 
@@ -39,7 +86,7 @@ def export_graph_json(
         output_paths = ["../frontend/public/graph.json", "../out/graph.json"]
 
     degrees = {icao: len(node.edges) for icao, node in graph.nodes.items()}
-    
+
     if not degrees:
         print("Aviso: Grafo vazio, não há o que exportar.")
         return
@@ -89,32 +136,12 @@ def export_graph_json(
         dirname = os.path.dirname(path)
         if dirname:
             os.makedirs(dirname, exist_ok=True)
-            
         with open(path, "w", encoding="utf-8") as f:
             f.write(payload)
         print(f"Exported {len(nodes)} nodes and {len(edges)} edges → {path}")
 
-def validate_graph(graph: Graph) -> None:
-    if not graph.nodes:
-        raise ValueError("Graph has no nodes")
 
-    visited = set()
-
-    def dfs(icao: str) -> None:
-        visited.add(icao)
-        for edge in graph.nodes[icao].edges:
-            if edge.destination.icao not in visited:
-                dfs(edge.destination.icao)
-
-    start = next(iter(graph.nodes))
-    dfs(start)
-
-    disconnected = set(graph.nodes) - visited
-    if disconnected:
-        raise ValueError(f"Graph is not connected. Disconnected nodes: {disconnected}")
-
-
-def load_routes(filepath: str = "../in/rotas.csv") -> list[tuple[str, str]]:
+def load_routes(filepath: str = "../data/rotas.csv") -> list[tuple[str, str]]:
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Routes file not found: {filepath}")
 
@@ -127,11 +154,12 @@ def load_routes(filepath: str = "../in/rotas.csv") -> list[tuple[str, str]]:
             routes.append((origin, destination))
     return routes
 
+
 def export_routes(results: list[dict[str, str]], filepath: str = "../out/distancias_rotas.csv") -> None:
     dirname = os.path.dirname(filepath)
     if dirname:
         os.makedirs(dirname, exist_ok=True)
-        
+
     with open(filepath, mode="w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["origem", "destino", "custo", "caminho"])
         writer.writeheader()
