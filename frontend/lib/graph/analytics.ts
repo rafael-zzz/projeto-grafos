@@ -65,6 +65,25 @@ export function regionalMetrics(
   });
 }
 
+export function regionalFlowMatrix(
+  graph: GraphData,
+): { regions: string[]; matrix: number[][] } {
+  const regions = [...new Set(graph.nodes.map((n) => n.attributes.region))].sort();
+  const idx = new Map(regions.map((r, i) => [r, i]));
+  const matrix = Array.from({ length: regions.length }, () =>
+    new Array<number>(regions.length).fill(0),
+  );
+  const nodeRegion = new Map(graph.nodes.map((n) => [n.key, n.attributes.region]));
+  for (const edge of graph.edges) {
+    const src = nodeRegion.get(edge.source);
+    const dst = nodeRegion.get(edge.target);
+    if (src !== undefined && dst !== undefined) {
+      matrix[idx.get(src)!][idx.get(dst)!]++;
+    }
+  }
+  return { regions, matrix };
+}
+
 export function bfsLevelDistribution(
   bfsResult: BfsResult,
 ): { level: number; label: string; count: number }[] {

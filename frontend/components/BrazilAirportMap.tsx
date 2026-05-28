@@ -9,7 +9,7 @@ import { RegionPanel } from "@/components/RegionPanel";
 import { DijkstraPanel } from "@/components/DijkstraPanel";
 import { BfsPanel } from "@/components/BfsPanel";
 import { DfsPanel } from "@/components/DfsPanel";
-import { ChartsPanel } from "@/components/ChartsPanel";
+import { ChartsSheet } from "@/components/ChartsSheet";
 import { type DijkstraResult, getHighlightedEdges, getPath } from "@/lib/graph/dijkstra";
 import { type BfsResult, getBfsTreeEdges, bfsLevelColor } from "@/lib/graph/bfs";
 import { type DfsResult, getDfsTreeEdges, dfsLevelColor } from "@/lib/graph/dfs";
@@ -164,8 +164,7 @@ export function BrazilAirportMap() {
     const [bfsResult, setBfsResult] = useState<BfsResult | null>(null);
     const [showDfs, setShowDfs] = useState(false);
     const [dfsResult, setDfsResult] = useState<DfsResult | null>(null);
-    const [showAnalytics, setShowAnalytics] = useState(false);
-    const [panelWidth, setPanelWidth] = useState(288);
+    const [showAnalytics, setShowAnalytics] = useState(false);    const [panelWidth, setPanelWidth] = useState(288);
     const [isPanelResizing, setIsPanelResizing] = useState(false);
     const isResizing = useRef(false);
     const didDrag = useRef(false);
@@ -266,6 +265,7 @@ export function BrazilAirportMap() {
     const dfsTreeEdges = dfsResult ? getDfsTreeEdges(dfsResult.prev) : null;
 
     return (
+       <>
        <div className="flex h-full w-full flex-col bg-zinc-50">
           <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3 flex items-center justify-between">
              <div>
@@ -485,23 +485,17 @@ export function BrazilAirportMap() {
              </div>
 
              <AnimatePresence>
-             {(selectedKey || selectedRegion || showDijkstra || showBfs || showDfs || showAnalytics) && (
+             {(selectedKey || selectedRegion || showDijkstra || showBfs || showDfs) && (
                 <motion.div
-                   key={showAnalytics ? "analytics" : showDfs ? "dfs" : showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
+                   key={showDfs ? "dfs" : showBfs ? "bfs" : showDijkstra ? "dijkstra" : selectedKey ?? `region-${selectedRegion}`}
                    initial={{ width: 0, opacity: 0 }}
-                   animate={{ width: showAnalytics ? Math.max(panelWidth, 380) : panelWidth, opacity: 1 }}
+                   animate={{ width: panelWidth, opacity: 1 }}
                    exit={{ width: 0, opacity: 0 }}
                    transition={isPanelResizing ? { duration: 0 } : { duration: 0.28, ease: "easeInOut" }}
                    className="relative shrink-0 overflow-hidden"
                 >
                    <div className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-zinc-300 active:bg-zinc-400" onMouseDown={startResize} />
-                   {showAnalytics ? (
-                      <ChartsPanel
-                         graph={graph}
-                         bfsResult={bfsResult}
-                         onClose={() => setShowAnalytics(false)}
-                      />
-                   ) : showDfs ? (
+                   {showDfs ? (
                       <DfsPanel
                          graph={graph}
                          onResult={(r) => setDfsResult(r)}
@@ -547,5 +541,14 @@ export function BrazilAirportMap() {
              </ul>
           </footer>
        </div>
+
+       {showAnalytics && (
+          <ChartsSheet
+             graph={graph}
+             bfsResult={bfsResult}
+             onClose={() => setShowAnalytics(false)}
+          />
+       )}
+    </>
     );
 }
