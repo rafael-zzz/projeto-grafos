@@ -8,15 +8,6 @@ Modelagem e análise da malha aérea nacional usando grafos. O dataset é compos
 pip install -r requirements.txt
 ```
 
-<<<<<<< HEAD
-Gera os arquivos em `out/`:
-- `global.json` — ordem, tamanho, densidade do grafo
-- `regioes.json` — mesmas métricas por região
-- `graus.csv` — grau de cada aeroporto
-- `ego_aeroportos.csv` / `.json` — métricas de rede ego por aeroporto
-- `graph.json` — exportado também para `frontend/public/`
-- `arvore_percurso.png` / `arvore_percurso.html` — árvore de percurso dos caminhos obrigatórios
-=======
 ## Pipeline de dados
 
 Os arquivos `data/airports.csv` e `data/edges.csv` são gerados a partir do dataset bruto (`data/aeroportos_data.csv`). Execute os alvos do Makefile **na ordem**:
@@ -31,7 +22,14 @@ make check      # extrai fluxo regional → data/flight_regions.csv
 # ou tudo de uma vez:
 make all
 ```
->>>>>>> main
+
+Gera os arquivos em `out/`:
+- `global.json` — ordem, tamanho, densidade do grafo
+- `regioes.json` — mesmas métricas por região
+- `graus.csv` — grau de cada aeroporto
+- `ego_aeroportos.csv` / `.json` — métricas de rede ego por aeroporto
+- `graph.json` — exportado também para `frontend/public/`
+- `arvore_percurso.png` / `arvore_percurso.html` — árvore de percurso dos caminhos obrigatórios
 
 ## CLI
 
