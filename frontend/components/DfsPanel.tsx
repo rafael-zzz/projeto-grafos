@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { GraphData } from "@/lib/graph/types";
-import { type DfsResult, runDfs, getDfsTreeEdges, dfsLevelColor } from "../lib/graph/dfs";
+import { type DfsResult, runDfs, getDfsTreeEdges, dfsLevelColor } from "@/lib/graph/dfs";
 
 export function DfsPanel({
   graph,
@@ -111,7 +111,7 @@ export function DfsPanel({
                 <span className="ml-auto font-normal text-zinc-500">{keys.length}</span>
               </p>
               <ul className="divide-y divide-zinc-100">
-                {keys.map((key) => {
+                {keys.map((key: string) => {
                   const node = nodeMap.get(key)!;
                   return (
                     <li key={key} className="flex items-center gap-3 px-4 py-1.5">
