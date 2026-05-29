@@ -347,7 +347,9 @@ export function BrazilAirportMap() {
                    onClick={() => { toggleRouteTree(!showRouteTree); setShowBfs(false); setShowDfs(false); setShowDijkstra(false); setBfsResult(null); setDfsResult(null); setDijkstraResult(null); setSelectedKey(null); setSelectedRegion(null); }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showRouteTree || routeTreeActive ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
-                   Percurso
+                   Roteiro
+                </button>
+               <button
                    onClick={() => { setShowAnalytics((v) => !v); setShowBfs(false); setShowDfs(false); setShowDijkstra(false); setDijkstraResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showAnalytics ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
