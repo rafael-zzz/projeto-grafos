@@ -1,9 +1,7 @@
 import csv
 import json
 import os
-
 import pandas as pd
-
 from .graph import Graph
 
 AIRPORTS_CSV = "../data/airports.csv"
@@ -68,6 +66,8 @@ def load_graph(
     airports_path: str = AIRPORTS_CSV,
     adjacencies_path: str = EDGES_CSV,
 ) -> Graph:
+    from graph_loader import build_graph_from_csv
+
     if not os.path.exists(airports_path):
         raise FileNotFoundError(f"Airports file not found: {airports_path}")
     if not os.path.exists(adjacencies_path):

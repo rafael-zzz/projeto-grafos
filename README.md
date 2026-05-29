@@ -23,6 +23,14 @@ make check      # extrai fluxo regional → data/flight_regions.csv
 make all
 ```
 
+Gera os arquivos em `out/`:
+- `global.json` — ordem, tamanho, densidade do grafo
+- `regioes.json` — mesmas métricas por região
+- `graus.csv` — grau de cada aeroporto
+- `ego_aeroportos.csv` / `.json` — métricas de rede ego por aeroporto
+- `graph.json` — exportado também para `frontend/public/`
+- `arvore_percurso.png` / `arvore_percurso.html` — árvore de percurso dos caminhos obrigatórios
+
 ## CLI
 
 Todos os comandos são executados a partir da **raiz do projeto**:
