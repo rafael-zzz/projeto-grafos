@@ -15,3 +15,6 @@ class Node:
 
     def __repr__(self):
         return f"Node({self.icao}, {self.city})"
+
+    def get_id(self) -> str:
+        return self.icao
