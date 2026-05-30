@@ -70,14 +70,14 @@ def DFS(graph: Graph, origin=None):
 
 
 def Dijkstra(graph: Graph, origin, destination):
-    if origin.icao not in graph.nodes or destination.icao not in graph.nodes:
+    if origin.get_id() not in graph.nodes or destination.get_id() not in graph.nodes:
         return float("inf"), []
 
     for node in graph.nodes.values():
         for edge in node.edges:
             if edge.weight < 0:
                 raise ValueError(
-                    f"Negative weight on edge {node.icao} -> {edge.destination.icao}: {edge.weight}"
+                    f"Negative weight on edge {node.get_id()} -> {edge.destination.get_id()}: {edge.weight}"
                 )
 
     distances = {}
@@ -85,37 +85,37 @@ def Dijkstra(graph: Graph, origin, destination):
     unvisited = []
 
     for node in graph.nodes.values():
-        distances[node.icao] = float("inf")
+        distances[node.get_id()] = float("inf")
         unvisited.append(node)
 
-    distances[origin.icao] = 0
+    distances[origin.get_id()] = 0
 
     while unvisited:
-        current_node = min(unvisited, key=lambda node: distances[node.icao])
+        current_node = min(unvisited, key=lambda node: distances[node.get_id()])
         unvisited.remove(current_node)
 
         if current_node == destination:
             break
 
         for neighbor in current_node.edges:
-            new_distance = distances[current_node.icao] + neighbor.weight
-            if distances[neighbor.destination.icao] > new_distance:
-                distances[neighbor.destination.icao] = new_distance
-                predecessors[neighbor.destination.icao] = current_node.icao
+            new_distance = distances[current_node.get_id()] + neighbor.weight
+            if distances[neighbor.destination.get_id()] > new_distance:
+                distances[neighbor.destination.get_id()] = new_distance
+                predecessors[neighbor.destination.get_id()] = current_node.get_id()
 
-    if destination.icao not in predecessors and origin.icao != destination.icao:
+    if destination.get_id() not in predecessors and origin.get_id() != destination.get_id():
         return float("inf"), []
 
     path = []
-    current = destination.icao
+    current = destination.get_id()
     while True:
         path.append(current)
-        if current == origin.icao:
+        if current == origin.get_id():
             break
         current = predecessors[current]
 
     path.reverse()
-    return distances[destination.icao], path
+    return distances[destination.get_id()], path
 
 
 def BellmanFord(graph: Graph, origin, destination=None):
