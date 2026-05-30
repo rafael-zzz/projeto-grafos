@@ -89,7 +89,7 @@ def cmd_routes(_args):
         routes = load_routes()
     except FileNotFoundError as e:
         print(f"Erro: {e}")
-        print("Certifique-se de que o arquivo 'data/rotas.csv' existe com colunas 'origem' e 'destino'.")
+        print("Certifique-se de que o arquivo 'data/airports/rotas.csv' existe com colunas 'origem' e 'destino'.")
         sys.exit(1)
 
     results = []

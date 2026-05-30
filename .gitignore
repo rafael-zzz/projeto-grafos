@@ -8,8 +8,6 @@ ENV/
 build/
 dist/
 *.egg-info/
-.claude
-claude/
 
 # --- Frontend (Next.js) ---
 # Baseado no gitignore do seu projeto
@@ -39,7 +37,12 @@ frontend/.env*
 
 # --- Outros ---
 projeto-grafos.zip
+.claude
+claude/
 
 # Arquivos gerados — rode python3 src/cli.py solve para recriar
 out/*
 !out/.gitkeep
+
+# Projeto
+wikipedia/

@@ -10,7 +10,7 @@ from metrics.metrics_exporter import (
     export_ego_metrics,
     export_degrees_csv,
 )
-from viz import export_route_tree_artifacts
+from route_tree import export_route_tree_artifacts
 
 
 def _undirected_edges(graph):

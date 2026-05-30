@@ -4,8 +4,8 @@ import os
 import pandas as pd
 from .graph import Graph
 
-AIRPORTS_CSV = "../data/airports.csv"
-EDGES_CSV = "../data/edges.csv"
+AIRPORTS_CSV = "../data/airports/airports.csv"
+EDGES_CSV = "../data/airports/edges.csv"
 
 REGION_COLORS: dict[str, str] = {
     "Norte":        "#0d9488",
@@ -141,7 +141,7 @@ def export_graph_json(
         print(f"Exported {len(nodes)} nodes and {len(edges)} edges → {path}")
 
 
-def load_routes(filepath: str = "../data/rotas.csv") -> list[tuple[str, str]]:
+def load_routes(filepath: str = "../data/airports/rotas.csv") -> list[tuple[str, str]]:
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Routes file not found: {filepath}")
 
