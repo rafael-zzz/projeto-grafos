@@ -79,3 +79,23 @@ npm run dev
 ```
 
 Requer que `out/graph.json` (ou `frontend/public/graph.json`) tenha sido gerado via `python3 src/cli.py solve`.
+
+## Pipeline Wikipedia
+
+O grafo interativo da Wikipedia é gerado a partir de `data/wikipedia/pages_export.csv` e `data/wikipedia/links_export.csv`. Execute:
+
+```bash
+make wiki
+```
+
+Isso roda cinco etapas em sequência:
+
+```bash
+make wiki-clean      # filtra links internos e calcula 2-core → data/wikipedia/clean_*.csv
+make wiki-build      # seleciona top-400 vértices por grau    → data/wikipedia/nodes.csv + edges.csv
+make wiki-layout     # posições na esfera de Fibonacci         → data/wikipedia/layout.csv
+make wiki-export     # exporta grafo estático                  → frontend/public/wiki_graph.json
+make wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
+```
+
+> **Nota:** `frontend/public/wiki_adjacency.json` (~14 MB) está no `.gitignore` por ser um arquivo grande e gerado. Após clonar o repositório, rode `make wiki-adjacency` (ou `make wiki` completo) para recriá-lo. Os demais arquivos (`wiki_graph.json`, `wiki_pages.json`) estão versionados e não precisam ser regerados.

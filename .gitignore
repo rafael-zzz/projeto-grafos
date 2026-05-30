@@ -46,3 +46,6 @@ out/*
 
 # Projeto
 data/wikipedia/
+
+# Gerado pelo pipeline Wikipedia — rode make wiki para recriar
+frontend/public/wiki_adjacency.json
