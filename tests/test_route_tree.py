@@ -1,10 +1,5 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from graph.graph import Graph
-from viz import build_route_tree
+from graphs.graph import Graph
+from route_tree import build_route_tree
 
 
 def test_build_route_tree_merges_mandatory_paths():

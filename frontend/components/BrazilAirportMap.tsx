@@ -10,7 +10,6 @@ import { DijkstraPanel } from "@/components/DijkstraPanel";
 import { BfsPanel } from "@/components/BfsPanel";
 import { RouteTreePanel } from "@/components/RouteTreePanel";
 import { DfsPanel } from "@/components/DfsPanel";
-import { ChartsSheet } from "@/components/ChartsSheet";
 import { type DijkstraResult, getHighlightedEdges, getPath } from "@/lib/graph/dijkstra";
 import { type BfsResult, getBfsTreeEdges, bfsLevelColor } from "@/lib/graph/bfs";
 import { type DfsResult, getDfsTreeEdges, dfsLevelColor } from "@/lib/graph/dfs";
@@ -177,7 +176,6 @@ export function BrazilAirportMap() {
     const [showDfs, setShowDfs] = useState(false);
     const [dfsResult, setDfsResult] = useState<DfsResult | null>(null);
     const [showRouteTree, setShowRouteTree] = useState(false);
-    const [showAnalytics, setShowAnalytics] = useState(false);    
     const [panelWidth, setPanelWidth] = useState(288);
     const [isPanelResizing, setIsPanelResizing] = useState(false);
     const isResizing = useRef(false);
@@ -310,7 +308,6 @@ export function BrazilAirportMap() {
     const dfsTreeEdges = !routeTreeActive && dfsResult ? getDfsTreeEdges(dfsResult.prev) : null;
 
     return (
-       <>
        <div className="flex h-full w-full flex-col bg-zinc-50">
           <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3 flex items-center justify-between">
              <div>
@@ -323,22 +320,19 @@ export function BrazilAirportMap() {
              </div>
              <div className="flex items-center gap-2">
                 <button
-                   onClick={() => { toggleRouteTree(false); setShowBfs((v) => !v); setShowDfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
-                   onClick={() => { setShowBfs((v) => !v); setShowDfs(false); setShowDijkstra(false); setShowAnalytics(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   onClick={() => { setShowBfs((v) => !v); setShowDfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showBfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
                    BFS
                 </button>
                 <button
-                   onClick={() => { toggleRouteTree(false); setShowDfs((v) => !v); setShowBfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
-                   onClick={() => { setShowDfs((v) => !v); setShowBfs(false); setShowDijkstra(false); setShowAnalytics(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
+                   onClick={() => { setShowDfs((v) => !v); setShowBfs(false); setShowDijkstra(false); setDijkstraResult(null); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDfs ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
                    DFS
                 </button>
                 <button
-                   onClick={() => { toggleRouteTree(false); setShowDijkstra((v) => !v); setShowBfs(false); setShowDfs(false); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
-                   onClick={() => { setShowDijkstra((v) => !v); setShowBfs(false); setShowDfs(false); setShowAnalytics(false); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
+                   onClick={() => { setShowDijkstra((v) => !v); setShowBfs(false); setShowDfs(false); setBfsResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); if (showDijkstra) { setDijkstraResult(null); } }}
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showDijkstra ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
                    Dijkstra
@@ -348,12 +342,6 @@ export function BrazilAirportMap() {
                    className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showRouteTree || routeTreeActive ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
                 >
                    Roteiro
-                </button>
-               <button
-                   onClick={() => { setShowAnalytics((v) => !v); setShowBfs(false); setShowDfs(false); setShowDijkstra(false); setDijkstraResult(null); setDfsResult(null); setSelectedKey(null); setSelectedRegion(null); }}
-                   className={`rounded border px-3 py-1.5 text-xs font-semibold transition-colors ${showAnalytics ? "border-zinc-800 bg-zinc-800 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"}`}
-                >
-                   Análises
                 </button>
              </div>
           </header>
@@ -699,14 +687,5 @@ export function BrazilAirportMap() {
              )}
           </footer>
        </div>
-
-       {showAnalytics && (
-          <ChartsSheet
-             graph={graph}
-             bfsResult={bfsResult}
-             onClose={() => setShowAnalytics(false)}
-          />
-       )}
-    </>
     );
 }

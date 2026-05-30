@@ -1,7 +1,7 @@
 from .edge import Edge
 
 class Node:
-    def __init__(self, icao: str, city: str, region: str, lat: float, lon: float):
+    def __init__(self, icao: str, city: str = None, region: str = None, lat: float = None, lon: float = None):
         self.icao = icao
         self.city = city
         self.region = region
@@ -14,7 +14,7 @@ class Node:
         self.edges.append(new_edge)
 
     def __repr__(self):
-        return f"Node({self.icao}, {self.city})"
+        return f"Node({self.icao}{f', {self.city}' if self.city else ''})"
 
     def get_id(self) -> str:
         return self.icao

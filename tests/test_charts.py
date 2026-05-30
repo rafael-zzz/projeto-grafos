@@ -1,7 +1,7 @@
 import json
 
-import visualization
-from visualization import (
+import charts as viz
+from charts import (
     DegreeRecord,
     RegionFlow,
     RegionMetric,

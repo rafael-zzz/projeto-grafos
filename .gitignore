@@ -45,4 +45,4 @@ out/*
 !out/.gitkeep
 
 # Projeto
-wikipedia/
+data/wikipedia/

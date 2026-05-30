@@ -7,4 +7,4 @@ class Edge:
         self.connection_type = connection_type
 
     def __repr__(self):
-        return f"Edge({self.origin.icao} -> {self.destination.icao}, peso={self.weight})"
+        return f"Edge({self.origin.get_id()} -> {self.destination.get_id()}, peso={self.weight})"

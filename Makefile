@@ -1,5 +1,5 @@
 PYTHON=python3
-SCRIPTS=src/pipeline
+SCRIPTS=src/airports_pipeline
 
 .PHONY: parse regions validate edges check all
 
