@@ -21,7 +21,7 @@ type View    = "mapa" | "analises";
 
 const VIEWS: { id: View; label: string; description: string }[] = [
   { id: "mapa",    label: "Mapa",    description: "Aeroportos, BFS, DFS, Dijkstra, Roteiro" },
-  { id: "analises",label: "Análises",description: "Distribuição, ranking, regiões, heatmap"  },
+  { id: "analises", label: "Análises", description: "Métricas, rankings, regiões e rotas" },
 ];
 
 // Wrapper mounts only when Wikipedia is active — keeps useWikiGraph

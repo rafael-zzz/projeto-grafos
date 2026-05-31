@@ -30,6 +30,12 @@ const TOOLTIP_STYLE = {
   itemStyle:    { color: "#3f3f46" },
 } as const;
 
+function levelFromBarClick(data: unknown): number | null {
+  const item = data as { level?: unknown; payload?: { level?: unknown } };
+  const level = typeof item.level === "number" ? item.level : item.payload?.level;
+  return typeof level === "number" ? level : null;
+}
+
 // ─── Analytics helpers ────────────────────────────────────────────────────────
 function wikiDegreeDistribution(graph: WikiGraphData) {
   const deg = new Map<string, number>(graph.nodes.map((n) => [n.key, 0]));
@@ -212,12 +218,12 @@ export function WikipediaAnalyticsView({ graph }: { graph: WikiGraphData | null 
             </p>
           </div>
         </div>
-        <div className="flex px-4">
+        <div className="flex overflow-x-auto px-4">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`mr-4 py-2.5 text-xs font-semibold transition-colors ${
+              className={`mr-4 shrink-0 py-2.5 text-xs font-semibold transition-colors ${
                 tab === t.id
                   ? "border-b-2 border-zinc-900 text-zinc-900"
                   : "text-zinc-500 hover:text-zinc-700"
@@ -331,7 +337,7 @@ export function WikipediaAnalyticsView({ graph }: { graph: WikiGraphData | null 
                 <p className="mb-3 text-xs text-zinc-600">
                   <span className="font-semibold text-zinc-900">{bfsData.length - 1}</span> níveis ·{" "}
                   <span className="font-semibold text-zinc-900">{localBfs!.levels.size - 1}</span> artigos alcançados a partir de{" "}
-                  <span className="font-semibold text-zinc-900">"{localBfs!.originKey}"</span>
+                  <span className="font-semibold text-zinc-900">{localBfs!.originKey}</span>
                   {bfsSelectedLevel === null && <span className="ml-2 text-zinc-400">· clique em uma barra para ver os artigos</span>}
                 </p>
                 <ResponsiveContainer width="100%" height={300}>
@@ -346,7 +352,10 @@ export function WikipediaAnalyticsView({ graph }: { graph: WikiGraphData | null 
                       fill="#1a1a1a"
                       radius={[3, 3, 0, 0]}
                       cursor="pointer"
-                      onClick={(d: any) => setBfsSelectedLevel(bfsSelectedLevel === d.level ? null : d.level)}
+                      onClick={(d) => {
+                        const level = levelFromBarClick(d);
+                        if (level !== null) setBfsSelectedLevel(bfsSelectedLevel === level ? null : level);
+                      }}
                     >
                       <LabelList dataKey="count" position="top" style={{ fontSize: 10, fill: "#374151" }} />
                     </Bar>
@@ -398,7 +407,7 @@ export function WikipediaAnalyticsView({ graph }: { graph: WikiGraphData | null 
                 <p className="mb-3 text-xs text-zinc-600">
                   <span className="font-semibold text-zinc-900">{dfsData.length - 1}</span> níveis ·{" "}
                   <span className="font-semibold text-zinc-900">{localDfs!.levels.size - 1}</span> artigos visitados a partir de{" "}
-                  <span className="font-semibold text-zinc-900">"{localDfs!.originKey}"</span>
+                  <span className="font-semibold text-zinc-900">{localDfs!.originKey}</span>
                   {dfsSelectedLevel === null && <span className="ml-2 text-zinc-400">· clique em uma barra para ver os artigos</span>}
                 </p>
                 <ResponsiveContainer width="100%" height={300}>
@@ -413,7 +422,10 @@ export function WikipediaAnalyticsView({ graph }: { graph: WikiGraphData | null 
                       fill="#1a1a1a"
                       radius={[3, 3, 0, 0]}
                       cursor="pointer"
-                      onClick={(d: any) => setDfsSelectedLevel(dfsSelectedLevel === d.level ? null : d.level)}
+                      onClick={(d) => {
+                        const level = levelFromBarClick(d);
+                        if (level !== null) setDfsSelectedLevel(dfsSelectedLevel === level ? null : level);
+                      }}
                     >
                       <LabelList dataKey="count" position="top" style={{ fontSize: 10, fill: "#374151" }} />
                     </Bar>

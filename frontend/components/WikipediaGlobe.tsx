@@ -114,18 +114,21 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
     visibleSetRef.current    = new Set(traversalOrder.slice(0, 1));
     nodeEnteredAtRef.current = new Map(traversalOrder[0] ? [[traversalOrder[0], 0]] : []);
     stepRef.current          = 0;
-    setStep(0);
-    setSelectedKey(null);
-    setPlaying(traversalOrder.length > 0);
+
+    const resetTimer = window.setTimeout(() => {
+      setStep(0);
+      setSelectedKey(null);
+      setPlaying(traversalOrder.length > 0);
+    }, 0);
+
+    return () => window.clearTimeout(resetTimer);
   }, [traversalOrder]);
 
   // ── Animation tick ───────────────────────────────────────────────────────
   useEffect(() => {
     const total = traversalOrder.length;
-    if (!playing || step >= total - 1) {
-      if (step >= total - 1) setPlaying(false);
-      return;
-    }
+    if (!playing || step >= total - 1) return;
+
     const npt = Math.max(1, Math.floor(total / 150));
     const timer = setTimeout(() => {
       setStep((s) => {
@@ -140,12 +143,14 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
         stepRef.current = next;
         return next;
       });
+      if (step + npt >= total - 1) setPlaying(false);
     }, speed);
     return () => clearTimeout(timer);
   }, [playing, step, traversalOrder, speed]);
 
   // ── RAF render loop — runs continuously, never restarts ─────────────────
   useEffect(() => {
+    if (!loaded) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const c = canvas as HTMLCanvasElement;
@@ -290,7 +295,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
 
     rafId = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(rafId);
-  }, []); // starts once, reads everything from refs
+  }, [loaded]); // starts after the loading state has mounted the canvas
 
   // ── Mouse handlers — update refs directly, no React setState ────────────
   const onMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
