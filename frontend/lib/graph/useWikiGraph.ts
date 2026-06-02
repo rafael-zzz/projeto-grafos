@@ -65,15 +65,17 @@ function dfsTraverse(
   seed: string, maxDepth: number, maxNodes: number, adj: WikiAdjacency,
 ): Map<string, number> {
   const visited = new Map<string, number>();
-  visited.set(seed, 0);
+  const seen    = new Set<string>([seed]);
   const stack: [string, number][] = [[seed, 0]];
+
   while (stack.length > 0 && visited.size < maxNodes) {
     const [node, depth] = stack.pop()!;
+    visited.set(node, depth);        // record when PROCESSED (stack pop), not on push
     if (depth >= maxDepth) continue;
     for (const nb of (adj[node] ?? [])) {
-      if (!visited.has(nb)) {
-        visited.set(nb, depth + 1);
-        if (visited.size < maxNodes) stack.push([nb, depth + 1]);
+      if (!seen.has(nb)) {
+        seen.add(nb);
+        stack.push([nb, depth + 1]);
       }
     }
   }
@@ -143,12 +145,19 @@ function buildSubgraph(
   const traversalOrder = [...visited.keys()];
   const nodeSet = new Set(traversalOrder);
 
-  // For DFS mode: compute BFS order for the ghost background layer.
-  // Filter to nodes already in the DFS subgraph so they have positions.
+  // For DFS mode: compute BFS order for both the ghost background layer and
+  // position assignment. Positions are assigned by BFS order so nodes cluster
+  // by graph-distance on the sphere. The DFS animation order then jumps across
+  // those clusters (deep-first), making the contrast with BFS visible spatially.
   let bfsGhostOrder: string[] = [];
+  let positionOrder: string[] | null = null; // null = use traversal order (BFS/ego)
   if (algorithm === "dfs") {
     const bfsVisited = bfsTraverse(effectiveSeed, depth, maxNodes, adj);
-    bfsGhostOrder = [...bfsVisited.keys()].filter((k) => nodeSet.has(k));
+    const bfsInSubgraph = [...bfsVisited.keys()].filter((k) => nodeSet.has(k));
+    bfsGhostOrder = bfsInSubgraph;
+    // DFS nodes not reached by BFS (if any) are appended at the end
+    const dfsOnly = traversalOrder.filter((k) => !bfsVisited.has(k));
+    positionOrder = [...bfsInSubgraph, ...dfsOnly];
   }
 
   // Build edge list + compute degrees in one pass
@@ -165,17 +174,19 @@ function buildSubgraph(
     }
   }
 
-  const degVals  = [...degrees.values()];
-  const minDeg   = Math.min(...degVals, 0);
-  const maxDeg   = Math.max(...degVals, 1);
-  const nodeList = [...visited.keys()];
-  const positions = fibonacciSphere(Math.max(nodeList.length, 1));
+  const degVals      = [...degrees.values()];
+  const minDeg       = Math.min(...degVals, 0);
+  const maxDeg       = Math.max(...degVals, 1);
+  const nodeList     = [...visited.keys()];
+  const posList      = positionOrder ?? nodeList;
+  const positions    = fibonacciSphere(Math.max(posList.length, 1));
+  const positionIdx  = new Map(posList.map((key, i) => [key, i]));
 
-  const nodes: WikiNode[] = nodeList.map((key, i) => {
+  const nodes: WikiNode[] = nodeList.map((key) => {
     const meta = pages[key] ?? { word_count: 0, url: "", categories: [] };
     const deg  = degrees.get(key) ?? 0;
     const size = 2 + 12 * (deg - minDeg) / (maxDeg - minDeg + 1e-9);
-    const [x, y, z] = positions[i];
+    const [x, y, z] = positions[positionIdx.get(key) ?? 0];
     return {
       key,
       attributes: {
