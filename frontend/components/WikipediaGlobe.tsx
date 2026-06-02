@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { WikiGraphData, WikiNode } from "@/lib/graph/wiki_types";
 import type { WikiGraphState } from "@/lib/graph/useWikiGraph";
 
-const DEPTH_OPTIONS = [1, 2, 3, 4, 5, 6];
+const DEPTH_OPTIONS = [0, 1, 2, 3, 4, 5, 6];
 const EDGE_BUCKETS  = 4;
 const FADE_FRAMES   = 15; // frames to fade a node in (~250ms at 60fps)
 
@@ -63,7 +63,7 @@ function ArticlePanel({ node, onClose }: { node: WikiNode; onClose: () => void }
 // ─── Globe ────────────────────────────────────────────────────────────────────
 export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
   const {
-    subgraph, traversalOrder, nodeKeys, loaded,
+    subgraph, traversalOrder, bfsGhostOrder, nodeKeys, loaded,
     seed, setSeed, depth, setDepth,
     maxNodes, setMaxNodes, algorithm, setAlgorithm,
     hitNodeCap,
@@ -84,6 +84,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
   const nodeMapRef       = useRef(new Map<string, WikiNode>());
   const traversalRef     = useRef<string[]>([]);
   const visibleSetRef    = useRef(new Set<string>());
+  const bfsGhostSetRef   = useRef(new Set<string>());
   const stepRef          = useRef(0);
   const nodeEnteredAtRef = useRef(new Map<string, number>());
   const maxEdgesRef      = useRef(8);
@@ -107,6 +108,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
   useEffect(() => { maxEdgesRef.current    = maxEdgesPerNode; }, [maxEdgesPerNode]);
   useEffect(() => { algorithmRef.current   = algorithm;       }, [algorithm]);
   useEffect(() => { selectedKeyRef.current = selectedKey;     }, [selectedKey]);
+  useEffect(() => { bfsGhostSetRef.current = new Set(bfsGhostOrder); }, [bfsGhostOrder]);
 
   // ── Reset + autoplay when traversal changes ──────────────────────────────
   useEffect(() => {
@@ -150,7 +152,6 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
 
   // ── RAF render loop — runs continuously, never restarts ─────────────────
   useEffect(() => {
-    if (!loaded) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const c = canvas as HTMLCanvasElement;
@@ -181,6 +182,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
       const canvasR  = Math.min(w, h) * 0.42 * scaleRef.current;
       const { x: rx, y: ry } = rotRef.current;
       const visibleSet    = visibleSetRef.current;
+      const bfsGhostSet   = bfsGhostSetRef.current;
       const curStep       = stepRef.current;
       const nodeEnteredAt = nodeEnteredAtRef.current;
       const maxEdges      = maxEdgesRef.current;
@@ -188,20 +190,21 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
       const egoNode       = traversalRef.current[0] ?? null;
       const selKey        = selectedKeyRef.current;
       const BASE_R        = 290; // matches original SVG sizing
+      const isDfsMode     = alg === "dfs" && bfsGhostSet.size > 0;
 
-      // Globe background
+      // Globe background — transparent fill so the watermark shows through
       ctx.beginPath();
       ctx.arc(cx, cy, canvasR, 0, Math.PI * 2);
-      ctx.fillStyle = "#f9f9f9";
-      ctx.fill();
       ctx.strokeStyle = "#d4d4d4";
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Project all visible nodes
+      // Project visible nodes + BFS ghost nodes
       const projected = new Map<string, { px: number; py: number; pz: number }>();
       for (const node of graph.nodes) {
-        if (!visibleSet.has(node.key)) continue;
+        const inVisible = visibleSet.has(node.key);
+        const inGhost   = isDfsMode && bfsGhostSet.has(node.key);
+        if (!inVisible && !inGhost) continue;
         const [x2, y2, pz] = rotatePoint(
           node.attributes.x, node.attributes.y, node.attributes.z, rx, ry,
         );
@@ -211,12 +214,35 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
           pz,
         });
       }
-      // Store for click hit-testing
+      // Store for click hit-testing (visible nodes only)
       projectedRef.current = new Map(
-        [...projected.entries()].map(([k, v]) => [k, { px: v.px, py: v.py }]),
+        [...projected.entries()]
+          .filter(([k]) => visibleSet.has(k))
+          .map(([k, v]) => [k, { px: v.px, py: v.py }]),
       );
 
-      // ── Edges ────────────────────────────────────────────────────────
+      // ── Ghost edges (BFS background, DFS mode only) ───────────────
+      if (isDfsMode) {
+        ctx.strokeStyle = "rgba(160,160,160,0.07)";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        const ghostDrawn = new Map<string, number>();
+        for (const edge of graph.edges) {
+          if (visibleSet.has(edge.source) || visibleSet.has(edge.target)) continue;
+          if (!bfsGhostSet.has(edge.source) || !bfsGhostSet.has(edge.target)) continue;
+          const count = ghostDrawn.get(edge.source) ?? 0;
+          if (count >= maxEdges) continue;
+          const src = projected.get(edge.source);
+          const tgt = projected.get(edge.target);
+          if (!src || !tgt) continue;
+          ghostDrawn.set(edge.source, count + 1);
+          ctx.moveTo(src.px, src.py);
+          ctx.lineTo(tgt.px, tgt.py);
+        }
+        ctx.stroke();
+      }
+
+      // ── Normal edges ─────────────────────────────────────────────
       const buckets: [number, number, number, number][][] =
         Array.from({ length: EDGE_BUCKETS }, () => []);
       const drawn = new Map<string, number>();
@@ -247,12 +273,26 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
         ctx.stroke();
       }
 
-      // ── Nodes (back → front) ─────────────────────────────────────────
+      // ── Nodes (back → front): ghosts then visible ────────────────
       const sorted = [...projected.entries()].sort(([, a], [, b]) => a.pz - b.pz);
 
       for (const [key, { px, py, pz }] of sorted) {
         const node = nodeMapRef.current.get(key);
         if (!node) continue;
+
+        const isGhostOnly = isDfsMode && bfsGhostSet.has(key) && !visibleSet.has(key);
+
+        if (isGhostOnly) {
+          const depthT = (pz + 1) / 2;
+          const nodeR  = node.attributes.size * (canvasR / BASE_R) * (0.5 + 0.5 * depthT) * 0.8;
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(nodeR, 0.5), 0, Math.PI * 2);
+          ctx.globalAlpha = 0.07 + 0.06 * depthT;
+          ctx.fillStyle   = "#888888";
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          continue;
+        }
 
         const isEgo      = alg === "ego" && key === egoNode;
         const isSelected = key === selKey;
@@ -295,7 +335,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
 
     rafId = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(rafId);
-  }, [loaded]); // starts after the loading state has mounted the canvas
+  }, []); // starts on mount, canvas is always in DOM
 
   // ── Mouse handlers — update refs directly, no React setState ────────────
   const onMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -367,19 +407,8 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
   }
 
   // ── Loading state ─────────────────────────────────────────────────────────
-  if (!loaded) {
-    return (
-      <div className="flex h-full flex-col">
-        <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3">
-          <h1 className="text-sm font-semibold text-zinc-800">Grafo Wikipedia</h1>
-          <p className="mt-0.5 text-xs text-zinc-500">Carregando dados…</p>
-        </header>
-        <div className="flex flex-1 items-center justify-center bg-white">
-          <p className="text-sm text-zinc-400">Carregando grafo…</p>
-        </div>
-      </div>
-    );
-  }
+  // Note: canvas is always rendered so the RAF loop can start on mount.
+  // A loading overlay is shown on top until data is ready.
 
   const graph        = subgraph;
   const selectedNode = selectedKey && graph
@@ -391,6 +420,13 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
       {/* ── Header ─────────────────────────────────────────────────── */}
       <header className="shrink-0 border-b border-zinc-200 bg-white">
 
+        {!loaded ? (
+          <div className="px-4 py-3">
+            <h1 className="text-sm font-semibold text-zinc-800">Grafo Wikipedia</h1>
+            <p className="mt-0.5 text-xs text-zinc-500">Carregando dados…</p>
+          </div>
+        ) : (
+          <>
         {/* Row 1: title + stats + algorithm toggle */}
         <div className="flex items-center justify-between px-4 py-2.5">
           <div>
@@ -488,11 +524,20 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
             <span className="text-[10px] text-zinc-400">Rápido</span>
           </div>
         </div>
+          </>
+        )}
       </header>
 
       {/* ── Canvas + panel ─────────────────────────────────────────── */}
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 overflow-hidden bg-white">
         <div className="relative min-w-0 flex-1 overflow-hidden bg-white">
+          {/* Wikipedia logo watermark */}
+          <img
+            src="/wiki_logo.png"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-[0.07]"
+          />
           <canvas
             ref={canvasRef}
             className="h-full w-full cursor-grab active:cursor-grabbing"
@@ -503,9 +548,14 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
             onWheel={onWheel}
             onClick={onCanvasClick}
           />
+          {!loaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white">
+              <p className="text-sm text-zinc-400">Carregando grafo…</p>
+            </div>
+          )}
         </div>
-        <AnimatePresence>
-          {selectedNode && (
+        <AnimatePresence mode="wait">
+          {loaded && selectedNode && (
             <ArticlePanel key={selectedNode.key} node={selectedNode} onClose={() => setSelectedKey(null)} />
           )}
         </AnimatePresence>

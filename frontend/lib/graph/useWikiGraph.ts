@@ -11,6 +11,7 @@ export type Algorithm = "bfs" | "dfs" | "ego";
 export type WikiGraphState = {
   subgraph: WikiGraphData | null;
   traversalOrder: string[];
+  bfsGhostOrder: string[]; // non-empty only when algorithm === "dfs"
   nodeKeys: string[];
   loaded: boolean;
   seed: string;
@@ -92,9 +93,11 @@ function egoTraverse(
   const level1 = [...(adj[seed] ?? [])]
     .sort((a, b) => (adj[b]?.length ?? 0) - (adj[a]?.length ?? 0));
 
-  for (const nb of level1) {
-    if (visited.size >= maxNodes) break;
-    visited.set(nb, 1);
+  if (maxDepth >= 1) {
+    for (const nb of level1) {
+      if (visited.size >= maxNodes) break;
+      visited.set(nb, 1);
+    }
   }
 
   // Deeper levels via BFS from level-1 nodes, also sorted by degree
@@ -127,7 +130,7 @@ function buildSubgraph(
   algorithm: Algorithm,
   adj: WikiAdjacency,
   pages: WikiPagesData,
-): { graph: WikiGraphData; traversalOrder: string[] } {
+): { graph: WikiGraphData; traversalOrder: string[]; bfsGhostOrder: string[] } {
   const effectiveSeed = pages[seed] !== undefined ? seed : DEFAULT_SEED;
 
   const visited = algorithm === "bfs"
@@ -139,6 +142,14 @@ function buildSubgraph(
   // Insertion order of visited Map = discovery order = animation sequence
   const traversalOrder = [...visited.keys()];
   const nodeSet = new Set(traversalOrder);
+
+  // For DFS mode: compute BFS order for the ghost background layer.
+  // Filter to nodes already in the DFS subgraph so they have positions.
+  let bfsGhostOrder: string[] = [];
+  if (algorithm === "dfs") {
+    const bfsVisited = bfsTraverse(effectiveSeed, depth, maxNodes, adj);
+    bfsGhostOrder = [...bfsVisited.keys()].filter((k) => nodeSet.has(k));
+  }
 
   // Build edge list + compute degrees in one pass
   const degrees = new Map<string, number>([...nodeSet].map((k) => [k, 0]));
@@ -180,7 +191,7 @@ function buildSubgraph(
     };
   });
 
-  return { graph: { nodes, edges }, traversalOrder };
+  return { graph: { nodes, edges }, traversalOrder, bfsGhostOrder };
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -217,6 +228,7 @@ export function useWikiGraph(): WikiGraphState {
   return {
     subgraph: result?.graph ?? null,
     traversalOrder: result?.traversalOrder ?? [],
+    bfsGhostOrder: result?.bfsGhostOrder ?? [],
     nodeKeys, loaded: !!adj && !!pagesData,
     seed, setSeed, depth, setDepth,
     maxNodes, setMaxNodes, algorithm, setAlgorithm,
