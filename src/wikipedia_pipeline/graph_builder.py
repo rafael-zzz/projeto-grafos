@@ -3,6 +3,14 @@ import math
 import ast
 import constants as c
 
+"""
+graph_builder.py
+Reads clean_pages.csv and clean_links.csv (produced by dataset_cleaning.py),
+computes degree for each page, keeps the top TOP_N_NODES pages by degree,
+filters edges to those between kept pages, applies a per-node edge cap, and
+writes nodes.csv + edges.csv.
+"""
+
 print("Reading clean pages...")
 pages = pd.read_csv(c.CLEAN_PAGES_CSV)
 print(f"  {len(pages)} pages loaded")
