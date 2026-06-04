@@ -108,46 +108,46 @@ export function RouteTreePanel({
 	}
 
 	return (
-		<div className="flex h-full w-full flex-col overflow-hidden border-l border-zinc-200 bg-white">
-			<div className="flex items-start justify-between border-b border-zinc-100 px-4 py-3">
+		<div className="flex h-full w-full flex-col overflow-hidden border-l border-gray-200 bg-white">
+			<div className="flex items-start justify-between border-b border-gray-100 px-4 py-3">
 				<div>
-					<p className="text-sm font-bold text-zinc-800">Percurso destacado</p>
-					<p className="mt-0.5 text-xs text-zinc-500">Selecione os aeroportos diretamente no mapa.</p>
+					<p className="text-sm font-bold text-gray-900">Percurso destacado</p>
+					<p className="mt-0.5 text-xs text-gray-500">Selecione os aeroportos diretamente no mapa.</p>
 				</div>
-				<button onClick={onClose} className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600">
+				<button onClick={onClose} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
 					×
 				</button>
 			</div>
 
-			<div className="border-b border-zinc-100 px-4 py-3">
+			<div className="border-b border-gray-100 px-4 py-3">
 				<div className="grid grid-cols-3 gap-3">
 					<div className="flex flex-col gap-0.5">
-						<span className="text-[10px] uppercase tracking-wide text-zinc-400">Rotas</span>
-						<span className="text-xl font-bold text-zinc-800">{data?.routes.length ?? 0}</span>
+						<span className="text-[10px] uppercase tracking-wide text-gray-400">Rotas</span>
+						<span className="text-xl font-bold text-gray-900">{data?.routes.length ?? 0}</span>
 					</div>
 					<div className="flex flex-col gap-0.5">
-						<span className="text-[10px] uppercase tracking-wide text-zinc-400">Nós</span>
-						<span className="text-xl font-bold text-zinc-800">{data?.nodes.length ?? 0}</span>
+						<span className="text-[10px] uppercase tracking-wide text-gray-400">Nós</span>
+						<span className="text-xl font-bold text-gray-900">{data?.nodes.length ?? 0}</span>
 					</div>
 					<div className="flex flex-col gap-0.5">
-						<span className="text-[10px] uppercase tracking-wide text-zinc-400">Arestas</span>
-						<span className="text-xl font-bold text-zinc-800">{data?.edges.length ?? 0}</span>
+						<span className="text-[10px] uppercase tracking-wide text-gray-400">Arestas</span>
+						<span className="text-xl font-bold text-gray-900">{data?.edges.length ?? 0}</span>
 					</div>
 				</div>
 				{sharedEdges.length > 0 && (
-					<p className="mt-2 text-xs text-zinc-500">{sharedEdges.length} aresta(s) são compartilhadas entre as rotas.</p>
+					<p className="mt-2 text-xs text-gray-500">{sharedEdges.length} aresta(s) são compartilhadas entre as rotas.</p>
 				)}
 			</div>
 
-			<div className="border-b border-zinc-100 px-4 py-3">
+			<div className="border-b border-gray-100 px-4 py-3">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Seleção direta</p>
-						<p className="mt-0.5 text-xs text-zinc-500">{editingNote}</p>
+						<p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Seleção direta</p>
+						<p className="mt-0.5 text-xs text-gray-500">{editingNote}</p>
 					</div>
 					<button
 						onClick={addRoute}
-						className="rounded border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600 hover:bg-zinc-50"
+						className="rounded border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
 					>
 						Adicionar percurso
 					</button>
@@ -155,16 +155,16 @@ export function RouteTreePanel({
 
 				<div className="mt-3 flex flex-col gap-3">
 					{routes.map((route, index) => (
-						<div key={route.id} className="rounded border border-zinc-100 bg-zinc-50 p-3">
+						<div key={route.id} className="rounded border border-gray-100 bg-gray-50 p-3">
 							<div className="flex items-center justify-between gap-2">
 								<div className="flex items-center gap-2">
 									<span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: route.color }} />
-									<p className="text-xs font-semibold text-zinc-700">Percurso {index + 1}</p>
+									<p className="text-xs font-semibold text-gray-700">Percurso {index + 1}</p>
 								</div>
 								{routes.length > 1 && (
 									<button
 										onClick={() => removeRoute(route.id)}
-										className="rounded px-2 py-1 text-[10px] font-semibold text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+										className="rounded px-2 py-1 text-[10px] font-semibold text-gray-400 hover:bg-gray-100 hover:text-gray-700"
 									>
 										Remover
 									</button>
@@ -177,7 +177,7 @@ export function RouteTreePanel({
 									onChange={(event) => updateRoute(route.id, "origin", event.target.value)}
 									onFocus={() => setSelectionTarget({ routeId: route.id, field: "origin" })}
 									placeholder="Origem"
-									className={`rounded border px-2 py-1.5 text-xs text-zinc-800 outline-none ${selectionTarget?.routeId === route.id && selectionTarget.field === "origin" ? "border-zinc-500" : "border-zinc-200"}`}
+									className={`rounded border px-2 py-1.5 text-xs text-gray-900 outline-none ${selectionTarget?.routeId === route.id && selectionTarget.field === "origin" ? "border-gray-600" : "border-gray-200"}`}
 								/>
 								<input
 									list="route-tree-nodes"
@@ -185,7 +185,7 @@ export function RouteTreePanel({
 									onChange={(event) => updateRoute(route.id, "destination", event.target.value)}
 									onFocus={() => setSelectionTarget({ routeId: route.id, field: "destination" })}
 									placeholder="Destino"
-									className={`rounded border px-2 py-1.5 text-xs text-zinc-800 outline-none ${selectionTarget?.routeId === route.id && selectionTarget.field === "destination" ? "border-zinc-500" : "border-zinc-200"}`}
+									className={`rounded border px-2 py-1.5 text-xs text-gray-900 outline-none ${selectionTarget?.routeId === route.id && selectionTarget.field === "destination" ? "border-gray-600" : "border-gray-200"}`}
 								/>
 							</div>
 						</div>
@@ -205,13 +205,13 @@ export function RouteTreePanel({
 				<div className="mt-3 flex gap-2">
 					<button
 						onClick={generateRouteTree}
-						className="flex-1 rounded bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700"
+						className="flex-1 rounded bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800"
 					>
 						Gerar percurso
 					</button>
 					<button
 						onClick={clearRouteTree}
-						className="rounded border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-50"
+						className="rounded border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
 					>
 						Limpar
 					</button>
@@ -219,27 +219,27 @@ export function RouteTreePanel({
 			</div>
 
 			<div className="min-h-0 flex-1 overflow-y-auto">
-				<p className="sticky top-0 border-b border-zinc-100 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+				<p className="sticky top-0 border-b border-gray-100 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
 					{data ? "Rotas geradas" : "Rotas em edição"}
 				</p>
 				{data ? (
-					<div className="divide-y divide-zinc-50">
+					<div className="divide-y divide-gray-50">
 						{data.routes.map((route) => (
 							<div key={route.id} className="px-4 py-3">
 								<div className="flex items-center gap-2">
 									<span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: route.color }} />
 									<div className="min-w-0 flex-1">
-										<p className="text-xs font-semibold text-zinc-800">{route.label}</p>
-										<p className="text-[10px] text-zinc-500">
+										<p className="text-xs font-semibold text-gray-900">{route.label}</p>
+										<p className="text-[10px] text-gray-500">
 											{route.origin} → {route.destination} · custo {route.cost.toFixed(4)} · {route.hops} trecho(s)
 										</p>
 									</div>
 								</div>
-								<p className="mt-2 text-[10px] leading-5 text-zinc-500">
+								<p className="mt-2 text-[10px] leading-5 text-gray-500">
 									{route.path.map((icao, index) => (
 										<span key={`${route.id}-${icao}`}>
-											<span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-700">{icao}</span>
-											{index < route.path.length - 1 && <span className="mx-1 text-zinc-300">→</span>}
+											<span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-700">{icao}</span>
+											{index < route.path.length - 1 && <span className="mx-1 text-gray-300">→</span>}
 										</span>
 									))}
 								</p>
@@ -247,7 +247,7 @@ export function RouteTreePanel({
 						))}
 					</div>
 				) : (
-					<div className="px-4 py-3 text-xs text-zinc-400">
+					<div className="px-4 py-3 text-xs text-gray-400">
 						{routes.map((route, index) => (
 							<p key={route.id} className={index > 0 ? "mt-2" : undefined}>
 								Percurso {index + 1}: {route.origin || "origem"} → {route.destination || "destino"}
@@ -256,31 +256,31 @@ export function RouteTreePanel({
 					</div>
 				)}
 
-				<div className="border-t border-zinc-100 px-4 py-3">
+				<div className="border-t border-gray-100 px-4 py-3">
 					<div className="flex items-center justify-between gap-2">
-						<p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Pré-visualização PNG</p>
-						<a href="/out/arvore_percurso.html" target="_blank" rel="noreferrer" className="text-[10px] font-semibold text-zinc-500 hover:text-zinc-800">
+						<p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Pré-visualização PNG</p>
+						<a href="/out/arvore_percurso.html" target="_blank" rel="noreferrer" className="text-[10px] font-semibold text-gray-500 hover:text-gray-900">
 							Abrir em nova aba
 						</a>
 					</div>
-					<div className="mt-3 overflow-hidden rounded border border-zinc-200 bg-zinc-50 px-4 py-3">
-						<p className="text-xs text-zinc-600">Imagem exportada em <strong>out/arvore_percurso.png</strong>.</p>
+					<div className="mt-3 overflow-hidden rounded border border-gray-200 bg-gray-50 px-4 py-3">
+						<p className="text-xs text-gray-600">Imagem exportada em <strong>out/arvore_percurso.png</strong>.</p>
 						{previewStatus === "ready" ? (
 							<div className="mt-3">
 								<img src={previewSrc} alt="Árvore de percurso" className="h-auto w-full border" />
 							</div>
 						) : previewStatus === "loading" ? (
-							<div className="mt-3 rounded border border-dashed border-zinc-200 bg-white px-4 py-6 text-xs text-zinc-500">
+							<div className="mt-3 rounded border border-dashed border-gray-200 bg-white px-4 py-6 text-xs text-gray-500">
 								Carregando pré-visualização PNG...
 							</div>
 						) : (
-							<ul className="mt-2 text-xs text-zinc-600">
-								<li><a href="/graph.json" className="text-zinc-700 underline">/graph.json</a> — Dump do grafo pela visualização.</li>
-								<li><a href="/out/arvore_percurso.html" className="text-zinc-700 underline">out/arvore_percurso.html</a> — HTML gerado.</li>
-								<li><a href="/out/arvore_percurso.png" className="text-zinc-700 underline">out/arvore_percurso.png</a> — Imagem estática gerada.</li>
+							<ul className="mt-2 text-xs text-gray-600">
+								<li><a href="/graph.json" className="text-gray-700 underline">/graph.json</a> — Dump do grafo pela visualização.</li>
+								<li><a href="/out/arvore_percurso.html" className="text-gray-700 underline">out/arvore_percurso.html</a> — HTML gerado.</li>
+								<li><a href="/out/arvore_percurso.png" className="text-gray-700 underline">out/arvore_percurso.png</a> — Imagem estática gerada.</li>
 							</ul>
 						)}
-						<p className="mt-3 text-[10px] text-zinc-400">A pré-visualização recarrega quando o percurso gerado muda.</p>
+						<p className="mt-3 text-[10px] text-gray-400">A pré-visualização recarrega quando o percurso gerado muda.</p>
 					</div>
 				</div>
 			</div>

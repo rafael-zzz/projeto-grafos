@@ -19,9 +19,23 @@ const WikipediaGlobe = dynamic(
 type Dataset = "airports" | "wikipedia";
 type View    = "mapa" | "analises";
 
-const VIEWS: { id: View; label: string; description: string }[] = [
-  { id: "mapa",    label: "Mapa",    description: "Aeroportos, BFS, DFS, Dijkstra, Roteiro" },
-  { id: "analises", label: "Análises", description: "Métricas, rankings, regiões e rotas" },
+const VIEWS: { id: View; label: string; description: Record<Dataset, string> }[] = [
+  {
+    id: "mapa",
+    label: "Mapa",
+    description: {
+      airports: "Aeroportos, BFS, DFS, Dijkstra, Roteiro",
+      wikipedia: "Páginas, ligações e layout (globo)",
+    },
+  },
+  {
+    id: "analises",
+    label: "Análises",
+    description: {
+      airports: "Métricas, rankings, regiões e rotas",
+      wikipedia: "Métricas, rankings e subgrafos",
+    },
+  },
 ];
 
 // Wrapper mounts only when Wikipedia is active — keeps useWikiGraph
@@ -30,7 +44,7 @@ function WikipediaWrapper({ view }: { view: View }) {
   const wikiState = useWikiGraph();
   return view === "mapa"
     ? <WikipediaGlobe wikiState={wikiState} />
-    : <WikipediaAnalyticsView graph={wikiState.subgraph} />;
+    : <WikipediaAnalyticsView graph={wikiState.subgraph} seed={wikiState.seed} />;
 }
 
 export function GraphViewClient() {
@@ -80,7 +94,7 @@ export function GraphViewClient() {
                   {v.label}
                 </p>
                 <p className={`mt-0.5 text-[10px] leading-tight ${view === v.id ? "text-zinc-300" : "text-zinc-400"}`}>
-                  {v.description}
+                  {v.description[dataset]}
                 </p>
               </button>
             </li>

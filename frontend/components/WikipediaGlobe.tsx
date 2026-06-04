@@ -536,7 +536,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
             src="/wiki_logo.png"
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-[0.07]"
+            className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-[0.03]"
           />
           <canvas
             ref={canvasRef}
