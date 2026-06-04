@@ -431,7 +431,7 @@ export function WikipediaAnalyticsView({
         tone: "green",
       },
     ] satisfies InsightCardData[];
-  }, [bfsData, graph, localDfs]);
+  }, [dfsData, graph, localDfs]);
 
   function calcBfs() {
     if (!graph) return;
