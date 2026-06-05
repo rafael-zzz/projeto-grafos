@@ -27,6 +27,19 @@ export type WikiGraphState = {
 
 const DEFAULT_SEED = "Chess";
 
+function resolveSeed(seed: string, pages: WikiPagesData): string {
+  const trimmed = seed.trim();
+  if (trimmed && pages[trimmed] !== undefined) return trimmed;
+
+  const normalized = trimmed.toLocaleLowerCase();
+  if (normalized) {
+    const match = Object.keys(pages).find((key) => key.toLocaleLowerCase() === normalized);
+    if (match) return match;
+  }
+
+  return DEFAULT_SEED;
+}
+
 // ─── Fibonacci sphere (same math as Python layout_builder.py) ────────────────
 function fibonacciSphere(n: number): [number, number, number][] {
   const golden = (1 + Math.sqrt(5)) / 2;
@@ -133,7 +146,7 @@ function buildSubgraph(
   adj: WikiAdjacency,
   pages: WikiPagesData,
 ): { graph: WikiGraphData; traversalOrder: string[]; bfsGhostOrder: string[] } {
-  const effectiveSeed = pages[seed] !== undefined ? seed : DEFAULT_SEED;
+  const effectiveSeed = resolveSeed(seed, pages);
 
   const visited = algorithm === "bfs"
     ? bfsTraverse(effectiveSeed, depth, maxNodes, adj)

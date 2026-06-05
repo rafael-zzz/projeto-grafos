@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LabelList,
 } from "recharts";
 import type { WikiGraphData, WikiNode } from "@/lib/graph/wiki_types";
-import type { GraphData } from "@/lib/graph/types";
 import { runBfs } from "@/lib/graph/bfs";
 import { runDfs } from "@/lib/graph/dfs";
 import {
@@ -18,15 +17,35 @@ import {
   graphDensity,
   type InsightCardData,
 } from "@/lib/graph/analytics";
+import {
+  asGraphData,
+  buildCategoryNarratives,
+  buildConnectionInsights,
+  buildConnectionNarratives,
+  buildOverviewNarratives,
+  buildRankingNarratives,
+  buildTraversalNarratives,
+  rareCategoryCount,
+  semanticBridgeCandidates,
+  topCategoryCoverage,
+  topImbalances,
+  topIncoming,
+  topOutgoing,
+  topThematicPages,
+  wikiDegreeRecords,
+  type WikiDegreeRecord,
+  type WikiNarrative,
+} from "@/lib/graph/wikiAnalytics";
 import type { BfsResult } from "@/lib/graph/bfs";
 import type { DfsResult } from "@/lib/graph/dfs";
 
-type Tab = "dist" | "ranking" | "categorias" | "bfs" | "dfs";
+type Tab = "dist" | "ranking" | "categorias" | "conexoes" | "bfs" | "dfs";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "dist",       label: "Distribuição" },
   { id: "ranking",    label: "Ranking"      },
   { id: "categorias", label: "Categorias"   },
+  { id: "conexoes",   label: "Conexões"    },
   { id: "bfs",        label: "BFS"          },
   { id: "dfs",        label: "DFS"          },
 ];
@@ -129,36 +148,22 @@ function topWordCountPages(graph: WikiGraphData, limit = 10) {
     .slice(0, limit);
 }
 
-function topCategoryCounts(nodes: WikiNode[], limit = 10) {
+function countCategories(nodes: WikiNode[], limit?: number) {
   const counts = new Map<string, number>();
   for (const node of nodes) {
     for (const category of node.attributes.categories) {
       counts.set(category, (counts.get(category) ?? 0) + 1);
     }
   }
-  return [...counts.entries()]
+  const sorted = [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, limit)
     .map(([category, count]) => ({ category, count }));
+
+  return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
 }
 
 function topCategories(nodes: WikiNode[], limit = 20) {
-  const counts = new Map<string, number>();
-  for (const node of nodes) {
-    for (const cat of node.attributes.categories) {
-      counts.set(cat, (counts.get(cat) ?? 0) + 1);
-    }
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, limit)
-    .map(([category, count]) => ({ category, count }));
-}
-
-// Cast WikiGraphData to GraphData-compatible for reusing bfs/dfs utilities
-// (both only access .edges[].source and .edges[].target at runtime)
-function asGraphData(wiki: WikiGraphData): GraphData {
-  return wiki as unknown as GraphData;
+  return countCategories(nodes, limit);
 }
 
 // ─── Level airport list (reused for Wikipedia articles) ───────────────────────
@@ -208,13 +213,88 @@ function Section({
   );
 }
 
+function NarrativePanel({ items }: { items: WikiNarrative[] }) {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="mb-5 grid gap-3 lg:grid-cols-2">
+      {items.map((item) => (
+        <div key={item.title} className="rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+          <p className="text-xs font-bold text-zinc-900">{item.title}</p>
+          <p className="mt-1 text-xs leading-relaxed text-zinc-600">{item.body}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function truncateLabel(value: string, max = 26): string {
+  return value.length > max ? `${value.slice(0, max)}…` : value;
+}
+
+type WikiNumericColumnKey =
+  | "inDegree"
+  | "outDegree"
+  | "totalDegree"
+  | "balance"
+  | "absBalance"
+  | "categoryCount"
+  | "bridgeScore"
+  | "wordCount";
+
+function ConnectionTable({
+  title,
+  rows,
+  columns,
+}: {
+  title: string;
+  rows: WikiDegreeRecord[];
+  columns: { key: WikiNumericColumnKey; label: string }[];
+}) {
+  return (
+    <div>
+      <p className="mb-2 text-xs font-bold text-zinc-900">{title}</p>
+      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-zinc-50 text-[10px] uppercase tracking-wide text-zinc-500">
+            <tr>
+              <th className="px-3 py-2">Artigo</th>
+              {columns.map((column) => (
+                <th key={String(column.key)} className="px-3 py-2 text-right">{column.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={`${title}-${row.key}`} className="border-t border-zinc-100">
+                <td className="max-w-[260px] truncate px-3 py-2 font-semibold text-zinc-900" title={row.key}>
+                  {row.key}
+                </td>
+                {columns.map((column) => (
+                  <td key={`${row.key}-${String(column.key)}`} className="px-3 py-2 text-right text-zinc-700">
+                    {Number(row[column.key]).toLocaleString("pt-BR")}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export function WikipediaAnalyticsView({
   graph,
   seed,
+  setSeed,
+  nodeKeys,
 }: {
   graph: WikiGraphData | null;
   seed: string;
+  setSeed: (seed: string) => void;
+  nodeKeys: string[];
 }) {
   const [tab, setTab] = useState<Tab>("dist");
 
@@ -243,10 +323,95 @@ export function WikipediaAnalyticsView({
   const rankData      = useMemo(() => graph ? topPages(graph)               : [],    [graph]);
   const wordCountData  = useMemo(() => graph ? topWordCountPages(graph)     : [],    [graph]);
   const categoryData  = useMemo(() => graph ? topCategories(graph.nodes)    : [],    [graph]);
-  const categoryCountData = useMemo(() => graph ? topCategoryCounts(graph.nodes) : [], [graph]);
+  const categoryCountData = useMemo(() => graph ? countCategories(graph.nodes) : [], [graph]);
   const bfsData       = useMemo(() => localBfs ? bfsLevelDistribution(localBfs) : [], [localBfs]);
   const dfsData       = useMemo(() => localDfs ? bfsLevelDistribution(localDfs) : [], [localDfs]);
   const degreeMap     = useMemo(() => graph ? wikiDegreeMap(graph) : new Map<string, number>(), [graph]);
+  const degreeRecords = useMemo(() => graph ? wikiDegreeRecords(graph) : [], [graph]);
+  const thematicRankData = useMemo(() => topThematicPages(degreeRecords, 20), [degreeRecords]);
+  const filteredUtilityCount = useMemo(
+    () => Math.max(0, degreeRecords.length - topThematicPages(degreeRecords, degreeRecords.length).length),
+    [degreeRecords],
+  );
+  const incomingRows  = useMemo(() => topIncoming(degreeRecords, 10), [degreeRecords]);
+  const outgoingRows  = useMemo(() => topOutgoing(degreeRecords, 10), [degreeRecords]);
+  const imbalanceRows = useMemo(() => topImbalances(degreeRecords, 10), [degreeRecords]);
+  const bridgeRows    = useMemo(() => semanticBridgeCandidates(degreeRecords, 10), [degreeRecords]);
+
+  useEffect(() => {
+    const resetTimer = window.setTimeout(() => {
+      setLocalBfs(null);
+      setBfsError(null);
+      setBfsSelectedLevel(null);
+      setLocalDfs(null);
+      setDfsError(null);
+      setDfsSelectedLevel(null);
+    }, 0);
+
+    return () => window.clearTimeout(resetTimer);
+  }, [graph]);
+
+  const overviewNarratives = useMemo(() => {
+    if (!graph) return [];
+    return buildOverviewNarratives({
+      graph,
+      seed: relativeSeed,
+      dominantBin: dominantDegreeBin(distData),
+      topHub: rankData[0],
+      concentration: degreeConcentration(degreeMap, 5),
+      categoryCount: categoryCountData.length,
+    });
+  }, [categoryCountData.length, degreeMap, distData, graph, rankData, relativeSeed]);
+
+  const rankingNarratives = useMemo(() => buildRankingNarratives({
+    topHub: rankData[0],
+    topThematicHub: thematicRankData[0],
+    longestArticle: wordCountData[0],
+    filteredUtilityCount,
+  }), [filteredUtilityCount, rankData, thematicRankData, wordCountData]);
+
+  const categoryNarratives = useMemo(() => {
+    if (!graph) return [];
+    return buildCategoryNarratives({
+      categories: categoryCountData,
+      nodeCount: graph.nodes.length,
+      topCoverage: topCategoryCoverage(graph, categoryCountData, 5),
+    });
+  }, [categoryCountData, graph]);
+
+  const connectionInsights = useMemo(() => buildConnectionInsights({
+    records: degreeRecords,
+    incoming: incomingRows,
+    outgoing: outgoingRows,
+    imbalances: imbalanceRows,
+    bridges: bridgeRows,
+  }), [bridgeRows, degreeRecords, imbalanceRows, incomingRows, outgoingRows]);
+
+  const connectionNarratives = useMemo(() => buildConnectionNarratives({
+    incoming: incomingRows,
+    outgoing: outgoingRows,
+    bridges: bridgeRows,
+  }), [bridgeRows, incomingRows, outgoingRows]);
+
+  const bfsNarratives = useMemo(() => {
+    if (!graph) return [];
+    return buildTraversalNarratives({
+      kind: "BFS",
+      graph,
+      result: localBfs,
+      levelData: bfsData,
+    });
+  }, [bfsData, graph, localBfs]);
+
+  const dfsNarratives = useMemo(() => {
+    if (!graph) return [];
+    return buildTraversalNarratives({
+      kind: "DFS",
+      graph,
+      result: localDfs,
+      levelData: dfsData,
+    });
+  }, [dfsData, graph, localDfs]);
 
   const networkInsights = useMemo(() => {
     if (!graph) return [];
@@ -325,22 +490,29 @@ export function WikipediaAnalyticsView({
   const rankingInsights = useMemo(() => {
     if (!graph || rankData.length === 0) return [];
     const leader = rankData[0];
-    const runnerUp = rankData[1];
+    const thematicLeader = thematicRankData[0];
     const leaderWordCount = wordCountData.find((page) => page.key === leader.key);
-    const gap = leader && runnerUp ? leader.degree - runnerUp.degree : 0;
 
     return [
       {
-        label: "Líder do ranking",
+        label: "Hub bruto",
         value: leader.key,
         detail: `${leader.degree} ligações totais${leaderWordCount ? ` · ${leaderWordCount.wordCount.toLocaleString("pt-BR")} palavras` : ""}.`,
         tone: "green",
       },
       {
-        label: "Folga para o 2º",
-        value: runnerUp ? `${gap}` : "-",
-        detail: runnerUp ? `Diferença para ${runnerUp.key}.` : "Sem segundo colocado para comparar.",
+        label: "Hub temático",
+        value: thematicLeader ? thematicLeader.key : "-",
+        detail: thematicLeader
+          ? `${thematicLeader.totalDegree} ligações após remover nós utilitários.`
+          : "Sem candidato temático após o filtro.",
         tone: "blue",
+      },
+      {
+        label: "Nós filtrados",
+        value: `${filteredUtilityCount}`,
+        detail: "Identificadores, bases de citação, coordenadas e páginas de manutenção removidas do ranking temático.",
+        tone: "zinc",
       },
       {
         label: "Top 5 hubs",
@@ -349,13 +521,15 @@ export function WikipediaAnalyticsView({
         tone: "orange",
       },
     ] satisfies InsightCardData[];
-  }, [degreeMap, graph, rankData, wordCountData]);
+  }, [degreeMap, filteredUtilityCount, graph, rankData, thematicRankData, wordCountData]);
 
   const categoryInsights = useMemo(() => {
     if (!graph || categoryCountData.length === 0) return [];
     const topCategory = categoryCountData[0];
     const categoryCoverage = new Set(graph.nodes.flatMap((node) => node.attributes.categories)).size;
     const multiCategoryPages = graph.nodes.filter((node) => node.attributes.categories.length >= 3).length;
+    const topFiveShare = topCategoryCoverage(graph, categoryCountData, 5);
+    const rareCategories = rareCategoryCount(categoryCountData);
 
     return [
       {
@@ -375,6 +549,18 @@ export function WikipediaAnalyticsView({
         value: `${multiCategoryPages}`,
         detail: "Artigos com 3 ou mais categorias, bons candidatos a hubs semânticos.",
         tone: "purple",
+      },
+      {
+        label: "Cobertura top 5",
+        value: formatPercent(topFiveShare),
+        detail: "Parcela dos artigos que aparece em pelo menos um dos cinco temas mais frequentes.",
+        tone: "orange",
+      },
+      {
+        label: "Categorias raras",
+        value: `${rareCategories}`,
+        detail: "Categorias com apenas um artigo, indicando nichos dentro da busca.",
+        tone: "zinc",
       },
     ] satisfies InsightCardData[];
   }, [categoryCountData, graph]);
@@ -478,12 +664,25 @@ export function WikipediaAnalyticsView({
     <div className="flex h-full flex-col bg-white">
       {/* Header with tabs */}
       <header className="shrink-0 border-b border-zinc-200 bg-white">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div>
             <h1 className="text-sm font-semibold text-zinc-800">Análises — Wikipedia</h1>
             <p className="mt-0.5 text-xs text-zinc-500">
               {graph.nodes.length} artigos · {graph.edges.length} ligações · busca: {relativeSeed}
             </p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Artigo</span>
+            <input
+              list="wiki-analytics-seeds"
+              value={seed}
+              onChange={(event) => setSeed(event.target.value)}
+              placeholder="Chess"
+              className="w-56 rounded border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-800 outline-none focus:border-zinc-400"
+            />
+            <datalist id="wiki-analytics-seeds">
+              {nodeKeys.map((key) => <option key={key} value={key} />)}
+            </datalist>
           </div>
         </div>
         <div className="flex overflow-x-auto px-4">
@@ -514,6 +713,7 @@ export function WikipediaAnalyticsView({
             subtitle="Número de artigos por faixa de grau no subgrafo da busca atual (escala logarítmica)"
             insights={distributionInsights}
           >
+            <NarrativePanel items={overviewNarratives} />
             <ResponsiveContainer width="100%" height={360}>
               <BarChart data={distData} margin={{ top: 10, right: 16, bottom: 8, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" />
@@ -530,27 +730,73 @@ export function WikipediaAnalyticsView({
 
         {tab === "ranking" && (
           <Section
-            title={`Artigos Mais Ligados · ${relativeSeed}`}
-            subtitle="Top 20 artigos por grau total no subgrafo da busca atual"
+            title={`Rankings de Centralidade · ${relativeSeed}`}
+            subtitle="Comparação entre hubs brutos e hubs temáticos filtrados no subgrafo da busca atual"
             insights={rankingInsights}
           >
-            <ResponsiveContainer width="100%" height={Math.max(300, rankData.length * 22 + 60)}>
-              <BarChart data={rankData} layout="vertical" margin={{ top: 8, right: 56, bottom: 8, left: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
-                <XAxis type="number" tick={TICK} />
-                <YAxis
-                  dataKey="key"
-                  type="category"
-                  tick={{ ...TICK, fontSize: 9 }}
-                  width={160}
-                  tickFormatter={(v: string) => v.length > 22 ? v.slice(0, 22) + "…" : v}
-                />
-                <Tooltip {...TOOLTIP_STYLE} formatter={(v) => [v, "Grau"]} />
-                <Bar dataKey="degree" name="Grau" fill="#1a1a1a" radius={[0, 3, 3, 0]}>
-                  <LabelList dataKey="degree" position="right" style={{ fontSize: 10, fill: "#374151" }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <NarrativePanel items={rankingNarratives} />
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <div>
+                <p className="mb-2 text-xs font-bold text-zinc-900">Hubs brutos por grau total</p>
+                <ResponsiveContainer width="100%" height={Math.max(320, rankData.length * 22 + 60)}>
+                  <BarChart data={rankData} layout="vertical" margin={{ top: 8, right: 56, bottom: 8, left: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
+                    <XAxis type="number" tick={TICK} />
+                    <YAxis
+                      dataKey="key"
+                      type="category"
+                      tick={{ ...TICK, fontSize: 9 }}
+                      width={160}
+                      tickFormatter={(v: string) => truncateLabel(v, 22)}
+                    />
+                    <Tooltip {...TOOLTIP_STYLE} formatter={(v) => [v, "Grau"]} />
+                    <Bar dataKey="degree" name="Grau" fill="#1a1a1a" radius={[0, 3, 3, 0]}>
+                      <LabelList dataKey="degree" position="right" style={{ fontSize: 10, fill: "#374151" }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-bold text-zinc-900">Hubs temáticos filtrados</p>
+                <ResponsiveContainer width="100%" height={Math.max(320, thematicRankData.length * 22 + 60)}>
+                  <BarChart data={thematicRankData} layout="vertical" margin={{ top: 8, right: 56, bottom: 8, left: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
+                    <XAxis type="number" tick={TICK} />
+                    <YAxis
+                      dataKey="key"
+                      type="category"
+                      tick={{ ...TICK, fontSize: 9 }}
+                      width={160}
+                      tickFormatter={(v: string) => truncateLabel(v, 22)}
+                    />
+                    <Tooltip {...TOOLTIP_STYLE} formatter={(v) => [v, "Grau"]} />
+                    <Bar dataKey="totalDegree" name="Grau" fill="#3f3f46" radius={[0, 3, 3, 0]}>
+                      <LabelList dataKey="totalDegree" position="right" style={{ fontSize: 10, fill: "#374151" }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="mt-6">
+              <p className="mb-2 text-xs font-bold text-zinc-900">Artigos mais extensos</p>
+              <ResponsiveContainer width="100%" height={Math.max(300, wordCountData.length * 26 + 60)}>
+                <BarChart data={wordCountData} layout="vertical" margin={{ top: 8, right: 64, bottom: 8, left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
+                  <XAxis type="number" tick={TICK} />
+                  <YAxis
+                    dataKey="key"
+                    type="category"
+                    tick={{ ...TICK, fontSize: 9 }}
+                    width={180}
+                    tickFormatter={(v: string) => truncateLabel(v)}
+                  />
+                  <Tooltip {...TOOLTIP_STYLE} formatter={(v) => [Number(v).toLocaleString("pt-BR"), "Palavras"]} />
+                  <Bar dataKey="wordCount" name="Palavras" fill="#71717a" radius={[0, 3, 3, 0]}>
+                    <LabelList dataKey="wordCount" position="right" style={{ fontSize: 10, fill: "#374151" }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </Section>
         )}
 
@@ -560,6 +806,7 @@ export function WikipediaAnalyticsView({
             subtitle="Top 20 categorias entre os artigos do subgrafo da busca atual"
             insights={categoryInsights}
           >
+            <NarrativePanel items={categoryNarratives} />
             <ResponsiveContainer width="100%" height={Math.max(300, categoryData.length * 22 + 60)}>
               <BarChart data={categoryData} layout="vertical" margin={{ top: 8, right: 56, bottom: 8, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
@@ -569,7 +816,7 @@ export function WikipediaAnalyticsView({
                   type="category"
                   tick={{ ...TICK, fontSize: 9 }}
                   width={180}
-                  tickFormatter={(v: string) => v.length > 26 ? v.slice(0, 26) + "…" : v}
+                  tickFormatter={(v: string) => truncateLabel(v)}
                 />
                 <Tooltip {...TOOLTIP_STYLE} formatter={(v) => [v, "Artigos"]} />
                 <Bar dataKey="count" name="Artigos" fill="#1a1a1a" radius={[0, 3, 3, 0]}>
@@ -577,6 +824,52 @@ export function WikipediaAnalyticsView({
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </Section>
+        )}
+
+        {tab === "conexoes" && (
+          <Section
+            title={`Conexões Estruturais · ${relativeSeed}`}
+            subtitle="Entrada, saída, desequilíbrio e pontes semânticas no subgrafo da busca atual"
+            insights={connectionInsights}
+          >
+            <NarrativePanel items={connectionNarratives} />
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <ConnectionTable
+                title="Mais recebem ligações"
+                rows={incomingRows}
+                columns={[
+                  { key: "inDegree", label: "Entrada" },
+                  { key: "totalDegree", label: "Total" },
+                ]}
+              />
+              <ConnectionTable
+                title="Mais enviam ligações"
+                rows={outgoingRows}
+                columns={[
+                  { key: "outDegree", label: "Saída" },
+                  { key: "totalDegree", label: "Total" },
+                ]}
+              />
+              <ConnectionTable
+                title="Maiores desequilíbrios"
+                rows={imbalanceRows}
+                columns={[
+                  { key: "outDegree", label: "Saída" },
+                  { key: "inDegree", label: "Entrada" },
+                  { key: "balance", label: "Saldo" },
+                ]}
+              />
+              <ConnectionTable
+                title="Pontes semânticas"
+                rows={bridgeRows}
+                columns={[
+                  { key: "totalDegree", label: "Grau" },
+                  { key: "categoryCount", label: "Categorias" },
+                  { key: "bridgeScore", label: "Score" },
+                ]}
+              />
+            </div>
           </Section>
         )}
 
@@ -611,6 +904,7 @@ export function WikipediaAnalyticsView({
             </div>
             {bfsData.length > 0 ? (
               <>
+                <NarrativePanel items={bfsNarratives} />
                 <p className="mb-3 text-xs text-zinc-600">
                   <span className="font-semibold text-zinc-900">{bfsData.length - 1}</span> níveis ·{" "}
                   <span className="font-semibold text-zinc-900">{localBfs!.levels.size - 1}</span> artigos alcançados a partir de{" "}
@@ -685,6 +979,7 @@ export function WikipediaAnalyticsView({
             </div>
             {dfsData.length > 0 ? (
               <>
+                <NarrativePanel items={dfsNarratives} />
                 <p className="mb-3 text-xs text-zinc-600">
                   <span className="font-semibold text-zinc-900">{dfsData.length - 1}</span> níveis ·{" "}
                   <span className="font-semibold text-zinc-900">{localDfs!.levels.size - 1}</span> artigos visitados a partir de{" "}

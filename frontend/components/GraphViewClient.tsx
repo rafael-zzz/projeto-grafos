@@ -44,7 +44,14 @@ function WikipediaWrapper({ view }: { view: View }) {
   const wikiState = useWikiGraph();
   return view === "mapa"
     ? <WikipediaGlobe wikiState={wikiState} />
-    : <WikipediaAnalyticsView graph={wikiState.subgraph} seed={wikiState.seed} />;
+    : (
+      <WikipediaAnalyticsView
+        graph={wikiState.subgraph}
+        seed={wikiState.seed}
+        setSeed={wikiState.setSeed}
+        nodeKeys={wikiState.nodeKeys}
+      />
+    );
 }
 
 export function GraphViewClient() {
