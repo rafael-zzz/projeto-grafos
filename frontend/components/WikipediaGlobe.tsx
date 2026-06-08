@@ -84,6 +84,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
     subgraph, traversalOrder, bfsGhostOrder, nodeKeys, loaded,
     seed, setSeed, depth, setDepth,
     maxNodes, setMaxNodes, algorithm, setAlgorithm,
+    bfDest, setBfDest,
     hitNodeCap,
   } = wikiState;
 
@@ -455,12 +456,12 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
             </p>
           </div>
           <div className="flex overflow-hidden rounded border border-zinc-200 text-[11px] font-semibold">
-            {(["bfs", "dfs", "ego"] as const).map((a, i) => (
+            {(["bfs", "dfs", "ego", "bf"] as const).map((a, i) => (
               <button key={a} onClick={() => { setAlgorithm(a); if (a === "ego" && depth > 2) setDepth(1); }}
                 className={`px-3 py-1.5 uppercase transition-colors ${
                   algorithm === a ? "bg-zinc-800 text-white" : "bg-white text-zinc-500 hover:bg-zinc-50"
                 } ${i > 0 ? "border-l border-zinc-200" : ""}`}>
-                {a}
+                {a === "bf" ? "Bellman-Ford" : a}
               </button>
             ))}
           </div>
@@ -477,6 +478,18 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
               {nodeKeys.map((k) => <option key={k} value={k} />)}
             </datalist>
           </div>
+
+          {algorithm === "bf" && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Destino</span>
+              <input list="wiki-globe-bf-dest" value={bfDest} onChange={(e) => setBfDest(e.target.value)}
+                placeholder="Artigo destino"
+                className="w-52 rounded border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-800 outline-none focus:border-zinc-400" />
+              <datalist id="wiki-globe-bf-dest">
+                {nodeKeys.map((k) => <option key={k} value={k} />)}
+              </datalist>
+            </div>
+          )}
 
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
