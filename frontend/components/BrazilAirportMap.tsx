@@ -219,6 +219,34 @@ export function BrazilAirportMap() {
 		setRouteTree(null);
 	}
 
+	function exportMapAsPng() {
+		const svg = svgRef.current;
+		if (!svg) return;
+		const serialized = new XMLSerializer().serializeToString(svg);
+		const blob = new Blob([serialized], { type: "image/svg+xml" });
+		const url = URL.createObjectURL(blob);
+		const img = new Image();
+		img.onload = () => {
+			const scale = 2;
+			const canvas = document.createElement("canvas");
+			canvas.width = VW * scale;
+			canvas.height = VH * scale;
+			const ctx = canvas.getContext("2d")!;
+			ctx.fillStyle = "#f8fafc";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(img, 0, 0, VW * scale, VH * scale);
+			URL.revokeObjectURL(url);
+			canvas.toBlob((pngBlob) => {
+				if (!pngBlob) return;
+				const a = document.createElement("a");
+				a.href = URL.createObjectURL(pngBlob);
+				a.download = "roteiro.png";
+				a.click();
+			}, "image/png");
+		};
+		img.src = url;
+	}
+
 	function toggleRouteTree(nextValue: boolean) {
 		setShowRouteTree(nextValue);
 		if (nextValue) {
@@ -628,6 +656,7 @@ export function BrazilAirportMap() {
                          onResult={setRouteTree}
                          selectionTarget={routeSelectionTarget}
                          setSelectionTarget={setRouteSelectionTarget}
+                         onExportPng={exportMapAsPng}
                          onClose={() => { toggleRouteTree(false); }}
                       />
                    ) : showDfs ? (

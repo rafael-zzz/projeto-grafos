@@ -32,7 +32,7 @@ import {
   type WikiDegreeRecord,
   type WikiNarrative,
 } from "@/lib/graph/wikiAnalytics";
-import { timedBfs, timedDfs, type RunReport } from "@/lib/graph/wikiReport";
+import { timedBfs, timedDfs, timedDijkstra, timedBellmanFord, type RunReport, type DijkstraReport, type BellmanFordReport } from "@/lib/graph/wikiReport";
 
 type Tab = "dist" | "ranking" | "categorias" | "conexoes" | "report";
 
@@ -263,7 +263,7 @@ export function WikipediaAnalyticsView({
 }) {
   const [tab, setTab] = useState<Tab>("dist");
 
-  // Report state
+  // Report state — BFS / DFS
   const [reportRunning, setReportRunning] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
   const [reportData, setReportData] = useState<{
@@ -271,6 +271,17 @@ export function WikipediaAnalyticsView({
     dfs: RunReport;
     origin: string;
     depth: number;
+  } | null>(null);
+
+  // Path algo state — Dijkstra / Bellman-Ford (separate calc)
+  const [pathDest, setPathDest] = useState("");
+  const [pathRunning, setPathRunning] = useState(false);
+  const [pathError, setPathError] = useState<string | null>(null);
+  const [pathData, setPathData] = useState<{
+    dijkstra: DijkstraReport;
+    bf: BellmanFordReport;
+    origin: string;
+    destination: string;
   } | null>(null);
 
   const nodeMap = useMemo(
@@ -510,7 +521,7 @@ export function WikipediaAnalyticsView({
     if (!nodeMap.has(key)) { setReportError(`"${key}" não encontrado no subgrafo.`); return; }
     setReportRunning(true);
     setReportData(null);
-    // Yield so the "calculating…" state actually paints before the sync work.
+    setPathData(null);
     await new Promise((r) => setTimeout(r, 0));
     const data = asGraphData(graph);
     const bfs = timedBfs(data, key, depth);
@@ -518,6 +529,25 @@ export function WikipediaAnalyticsView({
     const dfs = timedDfs(data, key, depth);
     setReportData({ bfs, dfs, origin: key, depth });
     setReportRunning(false);
+  }
+
+  async function calcPath() {
+    if (!graph) return;
+    setPathError(null);
+    const origin = relativeSeed;
+    const dest = pathDest.trim();
+    if (!dest) { setPathError("Informe o artigo de destino."); return; }
+    if (!nodeMap.has(dest)) { setPathError(`"${dest}" não encontrado no subgrafo atual.`); return; }
+    if (dest === origin) { setPathError("Origem e destino são iguais."); return; }
+    setPathRunning(true);
+    setPathData(null);
+    await new Promise((r) => setTimeout(r, 0));
+    const data = asGraphData(graph);
+    const dijkstra = timedDijkstra(data, origin, dest);
+    await new Promise((r) => setTimeout(r, 0));
+    const bf = timedBellmanFord(data, origin, dest);
+    setPathData({ dijkstra, bf, origin, destination: dest });
+    setPathRunning(false);
   }
 
   if (!graph) {
@@ -752,7 +782,8 @@ export function WikipediaAnalyticsView({
             title={`Report de Desempenho · ${relativeSeed}`}
             subtitle={`Tempo de execução de BFS e DFS limitados à profundidade ${depth} (definida no Mapa)`}
           >
-            <div className="mb-4 flex items-center gap-3">
+            {/* BFS / DFS controls */}
+            <div className="mb-4 flex flex-wrap items-center gap-3">
               <button
                 onClick={calcReport}
                 disabled={reportRunning}
@@ -769,8 +800,14 @@ export function WikipediaAnalyticsView({
             </div>
 
             {reportRunning && (
-              <div className="flex h-48 items-center justify-center text-sm text-zinc-500">
-                Calculando…
+              <div className="flex h-24 items-center justify-center text-sm text-zinc-500">
+                Calculando BFS e DFS…
+              </div>
+            )}
+
+            {!reportRunning && !reportData && !reportError && (
+              <div className="flex h-24 items-center justify-center text-sm text-zinc-500">
+                Clique em Calcular para gerar o report
               </div>
             )}
 
@@ -785,18 +822,69 @@ export function WikipediaAnalyticsView({
                   <ReportCard kind="DFS" report={reportData.dfs} />
                 </div>
                 {!reportData.bfs.memSupported && (
-                  <p className="mt-3 text-[11px] text-zinc-500">
-                    Consumo de memória só está disponível em navegadores baseados em Chromium (Chrome / Edge / Brave).
+                  <p className="mt-2 text-[11px] text-zinc-500">
+                    Consumo de memória só está disponível em navegadores baseados em Chromium.
                   </p>
                 )}
               </>
             )}
 
-            {!reportRunning && !reportData && !reportError && (
-              <div className="flex h-48 items-center justify-center text-sm text-zinc-500">
-                Clique em Calcular para gerar o report
+            {/* Dijkstra / Bellman-Ford — sempre visível após BFS/DFS calculados */}
+            {/* Dijkstra / Bellman-Ford — sempre visível, independente do BFS/DFS */}
+            <div className="mt-6 border-t border-zinc-100 pt-5">
+              <p className="mb-3 text-xs font-bold text-zinc-900">Dijkstra e Bellman-Ford</p>
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Destino</span>
+                  <input
+                    list="wiki-path-dest"
+                    value={pathDest}
+                    onChange={(e) => setPathDest(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && calcPath()}
+                    placeholder="Artigo destino"
+                    className="w-48 rounded border border-zinc-200 px-2.5 py-1.5 text-xs text-zinc-800 outline-none focus:border-zinc-400"
+                  />
+                  <datalist id="wiki-path-dest">
+                    {graph.nodes.map((n) => <option key={n.key} value={n.key} />)}
+                  </datalist>
+                </div>
+                <button
+                  onClick={calcPath}
+                  disabled={pathRunning}
+                  className="rounded bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700 disabled:opacity-50"
+                >
+                  {pathRunning ? "Calculando…" : "Calcular"}
+                </button>
+                {pathError && <p className="text-xs text-red-500">{pathError}</p>}
               </div>
-            )}
+
+              {pathRunning && (
+                <div className="flex h-24 items-center justify-center text-sm text-zinc-500">
+                  Calculando Dijkstra e Bellman-Ford…
+                </div>
+              )}
+
+              {!pathRunning && !pathData && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <PathAlgoCardEmpty kind="Dijkstra" />
+                  <PathAlgoCardEmpty kind="Bellman-Ford" />
+                </div>
+              )}
+
+              {!pathRunning && pathData && (
+                <>
+                  <p className="mb-3 text-xs text-zinc-600">
+                    <span className="font-semibold text-zinc-900">{pathData.origin}</span>
+                    {" → "}
+                    <span className="font-semibold text-zinc-900">{pathData.destination}</span>
+                  </p>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <PathAlgoCard kind="Dijkstra" report={pathData.dijkstra} />
+                    <BellmanFordCard report={pathData.bf} />
+                  </div>
+                </>
+              )}
+            </div>
           </Section>
         )}
       </div>
@@ -828,6 +916,99 @@ function ReportCard({ kind, report }: { kind: "BFS" | "DFS"; report: RunReport }
         <dt className="text-zinc-500">RAM média</dt>
         <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memAverageMB)}</dd>
       </dl>
+    </div>
+  );
+}
+
+function PathAlgoCardEmpty({ kind }: { kind: "Dijkstra" | "Bellman-Ford" }) {
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+      <p className="text-xs font-bold text-zinc-900">{kind}</p>
+      <dl className="mt-2 grid grid-cols-2 gap-y-1.5 text-xs">
+        {["Tempo", "Custo", "Saltos", "RAM base", "RAM pico"].map((label) => (
+          <><dt key={label} className="text-zinc-500">{label}</dt>
+          <dd className="text-right font-semibold text-zinc-400 tabular-nums">—</dd></>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function PathAlgoCard({ kind, report }: { kind: "Dijkstra"; report: DijkstraReport }) {
+  const fmt = (v: number | null) => (v === null ? "—" : `${v.toFixed(2)} MB`);
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+      <p className="text-xs font-bold text-zinc-900">{kind}</p>
+      <dl className="mt-2 grid grid-cols-2 gap-y-1.5 text-xs">
+        <dt className="text-zinc-500">Tempo</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{report.elapsedMs.toFixed(2)} ms</dd>
+
+        <dt className="text-zinc-500">Custo</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">
+          {report.cost !== null ? report.cost.toFixed(4) : "∞"}
+        </dd>
+
+        <dt className="text-zinc-500">Saltos</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">
+          {report.path.length > 0 ? report.path.length - 1 : "—"}
+        </dd>
+
+        <dt className="text-zinc-500">RAM base</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memBaselineMB)}</dd>
+
+        <dt className="text-zinc-500">RAM pico</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memPeakMB)}</dd>
+      </dl>
+      {report.path.length > 0 && (
+        <div className="mt-3 border-t border-zinc-100 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Caminho</p>
+          <p className="mt-1 text-[11px] text-zinc-700 leading-relaxed break-words">
+            {report.path.join(" → ")}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BellmanFordCard({ report }: { report: BellmanFordReport }) {
+  const fmt = (v: number | null) => (v === null ? "—" : `${v.toFixed(2)} MB`);
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+      <p className="text-xs font-bold text-zinc-900">Bellman-Ford</p>
+      <dl className="mt-2 grid grid-cols-2 gap-y-1.5 text-xs">
+        <dt className="text-zinc-500">Tempo</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{report.elapsedMs.toFixed(2)} ms</dd>
+
+        <dt className="text-zinc-500">Ciclo negativo</dt>
+        <dd className="text-right font-semibold tabular-nums" style={{ color: report.negativeCycle ? "#ef4444" : "#16a34a" }}>
+          {report.negativeCycle ? "Detectado" : "Não detectado"}
+        </dd>
+
+        <dt className="text-zinc-500">Custo</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">
+          {report.cost !== null ? report.cost.toFixed(4) : "∞"}
+        </dd>
+
+        <dt className="text-zinc-500">Saltos</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">
+          {report.path.length > 0 ? report.path.length - 1 : "—"}
+        </dd>
+
+        <dt className="text-zinc-500">RAM base</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memBaselineMB)}</dd>
+
+        <dt className="text-zinc-500">RAM pico</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memPeakMB)}</dd>
+      </dl>
+      {report.path.length > 0 && (
+        <div className="mt-3 border-t border-zinc-100 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Caminho</p>
+          <p className="mt-1 text-[11px] text-zinc-700 leading-relaxed break-words">
+            {report.path.join(" → ")}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

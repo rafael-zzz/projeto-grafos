@@ -10,12 +10,12 @@ import {
   MAX_DEPTH_DEFAULT,
 } from "../../wiki_constants";
 
-export type Algorithm = "bfs" | "dfs" | "ego";
+export type Algorithm = "bfs" | "dfs" | "ego" | "bf";
 
 export type WikiGraphState = {
   subgraph: WikiGraphData | null;
   traversalOrder: string[];
-  bfsGhostOrder: string[]; // non-empty only when algorithm === "dfs"
+  bfsGhostOrder: string[];
   nodeKeys: string[];
   loaded: boolean;
   seed: string;
@@ -26,6 +26,8 @@ export type WikiGraphState = {
   setMaxNodes: (n: number) => void;
   algorithm: Algorithm;
   setAlgorithm: (a: Algorithm) => void;
+  bfDest: string;
+  setBfDest: (d: string) => void;
   hitNodeCap: boolean;
 };
 
@@ -142,6 +144,47 @@ function egoTraverse(
 }
 
 
+// Bellman-Ford path: returns nodes on shortest path from seed → dest (uniform weights)
+function bfTraverse(
+  seed: string, dest: string, adj: WikiAdjacency,
+): Map<string, number> {
+  const visited = new Map<string, number>();
+  if (!dest || dest === seed) {
+    visited.set(seed, 0);
+    return visited;
+  }
+
+  // BFS for shortest path (uniform weight = number of hops)
+  const prev = new Map<string, string | null>([[seed, null]]);
+  const queue: [string, number][] = [[seed, 0]];
+  let found = false;
+  while (queue.length > 0 && !found) {
+    const [node, d] = queue.shift()!;
+    for (const nb of (adj[node] ?? [])) {
+      if (!prev.has(nb)) {
+        prev.set(nb, node);
+        if (nb === dest) { found = true; break; }
+        queue.push([nb, d + 1]);
+      }
+    }
+  }
+
+  if (!found) {
+    visited.set(seed, 0);
+    return visited;
+  }
+
+  // Reconstruct path
+  const path: string[] = [];
+  let cur: string | null = dest;
+  while (cur !== null) {
+    path.unshift(cur);
+    cur = prev.get(cur) ?? null;
+  }
+  path.forEach((k, i) => visited.set(k, i));
+  return visited;
+}
+
 function buildSubgraph(
   seed: string,
   depth: number,
@@ -149,6 +192,7 @@ function buildSubgraph(
   algorithm: Algorithm,
   adj: WikiAdjacency,
   pages: WikiPagesData,
+  bfDest: string,
 ): { graph: WikiGraphData; traversalOrder: string[]; bfsGhostOrder: string[] } {
   const effectiveSeed = resolveSeed(seed, pages);
 
@@ -156,6 +200,8 @@ function buildSubgraph(
     ? bfsTraverse(effectiveSeed, depth, maxNodes, adj)
     : algorithm === "dfs"
     ? dfsTraverse(effectiveSeed, depth, maxNodes, adj)
+    : algorithm === "bf"
+    ? bfTraverse(effectiveSeed, bfDest.trim(), adj)
     : egoTraverse(effectiveSeed, depth, maxNodes, adj);
 
   // Insertion order of visited Map = discovery order = animation sequence
@@ -230,6 +276,7 @@ export function useWikiGraph(): WikiGraphState {
   const [depth,     setDepth]     = useState(MAX_DEPTH_DEFAULT);
   const [maxNodes,  setMaxNodes]  = useState(MAX_RENDERED_NODES_DEFAULT);
   const [algorithm, setAlgorithm] = useState<Algorithm>("bfs");
+  const [bfDest,    setBfDest]    = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -248,8 +295,8 @@ export function useWikiGraph(): WikiGraphState {
 
   const result = useMemo(() => {
     if (!adj || !pagesData) return null;
-    return buildSubgraph(seed, depth, maxNodes, algorithm, adj, pagesData);
-  }, [adj, pagesData, seed, depth, maxNodes, algorithm]);
+    return buildSubgraph(seed, depth, maxNodes, algorithm, adj, pagesData, bfDest);
+  }, [adj, pagesData, seed, depth, maxNodes, algorithm, bfDest]);
 
   const hitNodeCap = result !== null && result.graph.nodes.length >= maxNodes;
 
@@ -260,6 +307,7 @@ export function useWikiGraph(): WikiGraphState {
     nodeKeys, loaded: !!adj && !!pagesData,
     seed, setSeed, depth, setDepth,
     maxNodes, setMaxNodes, algorithm, setAlgorithm,
+    bfDest, setBfDest,
     hitNodeCap,
   };
 }
