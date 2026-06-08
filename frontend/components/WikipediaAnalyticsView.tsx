@@ -7,10 +7,7 @@ import {
   ResponsiveContainer, LabelList,
 } from "recharts";
 import type { WikiGraphData, WikiNode } from "@/lib/graph/wiki_types";
-import { runBfs } from "@/lib/graph/bfs";
-import { runDfs } from "@/lib/graph/dfs";
 import {
-  bfsLevelDistribution,
   degreeConcentration,
   dominantDegreeBin,
   formatPercent,
@@ -24,7 +21,6 @@ import {
   buildConnectionNarratives,
   buildOverviewNarratives,
   buildRankingNarratives,
-  buildTraversalNarratives,
   rareCategoryCount,
   semanticBridgeCandidates,
   topCategoryCoverage,
@@ -36,18 +32,16 @@ import {
   type WikiDegreeRecord,
   type WikiNarrative,
 } from "@/lib/graph/wikiAnalytics";
-import type { BfsResult } from "@/lib/graph/bfs";
-import type { DfsResult } from "@/lib/graph/dfs";
+import { timedBfs, timedDfs, type RunReport } from "@/lib/graph/wikiReport";
 
-type Tab = "dist" | "ranking" | "categorias" | "conexoes" | "bfs" | "dfs";
+type Tab = "dist" | "ranking" | "categorias" | "conexoes" | "report";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "dist",       label: "Distribuição" },
   { id: "ranking",    label: "Ranking"      },
   { id: "categorias", label: "Categorias"   },
   { id: "conexoes",   label: "Conexões"    },
-  { id: "bfs",        label: "BFS"          },
-  { id: "dfs",        label: "DFS"          },
+  { id: "report",     label: "Report"       },
 ];
 
 
@@ -93,11 +87,6 @@ const TOOLTIP_STYLE = {
   labelStyle: { color: "#18181b", fontWeight: 600 },
   itemStyle:    { color: "#3f3f46" },
 } as const;
-function levelFromBarClick(data: unknown): number | null {
-  const item = data as { level?: unknown; payload?: { level?: unknown } };
-  const level = typeof item.level === "number" ? item.level : item.payload?.level;
-  return typeof level === "number" ? level : null;
-}
 
 function wikiDegreeMap(graph: WikiGraphData) {
   const deg = new Map<string, number>(graph.nodes.map((n) => [n.key, 0]));
@@ -164,32 +153,6 @@ function countCategories(nodes: WikiNode[], limit?: number) {
 
 function topCategories(nodes: WikiNode[], limit = 20) {
   return countCategories(nodes, limit);
-}
-
-// ─── Level airport list (reused for Wikipedia articles) ───────────────────────
-function LevelArticleList({
-  level, articles, onClose,
-}: {
-  level: number; articles: { key: string }[]; onClose: () => void;
-}) {
-  return (
-    <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50">
-      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2.5">
-        <span className="text-xs font-bold text-zinc-900">
-          {level === 0 ? "Origem" : `Nível ${level}`}
-        </span>
-        <span className="text-xs text-zinc-500">· {articles.length} artigo{articles.length !== 1 ? "s" : ""}</span>
-        <button onClick={onClose} className="rounded p-0.5 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600">✕</button>
-      </div>
-      <ul className="grid max-h-48 grid-cols-1 gap-0 overflow-y-auto sm:grid-cols-2">
-        {articles.map(({ key }) => (
-          <li key={key} className="truncate border-b border-zinc-100 px-4 py-2 text-xs text-zinc-700 even:bg-white odd:bg-zinc-50">
-            {key}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
 }
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
@@ -290,25 +253,25 @@ export function WikipediaAnalyticsView({
   seed,
   setSeed,
   nodeKeys,
+  depth,
 }: {
   graph: WikiGraphData | null;
   seed: string;
   setSeed: (seed: string) => void;
   nodeKeys: string[];
+  depth: number;
 }) {
   const [tab, setTab] = useState<Tab>("dist");
 
-  // BFS state
-  const [bfsOrigin,        setBfsOrigin]        = useState("");
-  const [localBfs,         setLocalBfs]         = useState<BfsResult | null>(null);
-  const [bfsError,         setBfsError]         = useState<string | null>(null);
-  const [bfsSelectedLevel, setBfsSelectedLevel] = useState<number | null>(null);
-
-  // DFS state
-  const [dfsOrigin,        setDfsOrigin]        = useState("");
-  const [localDfs,         setLocalDfs]         = useState<DfsResult | null>(null);
-  const [dfsError,         setDfsError]         = useState<string | null>(null);
-  const [dfsSelectedLevel, setDfsSelectedLevel] = useState<number | null>(null);
+  // Report state
+  const [reportRunning, setReportRunning] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [reportData, setReportData] = useState<{
+    bfs: RunReport;
+    dfs: RunReport;
+    origin: string;
+    depth: number;
+  } | null>(null);
 
   const nodeMap = useMemo(
     () => new Map(graph?.nodes.map((n) => [n.key, n]) ?? []),
@@ -324,8 +287,6 @@ export function WikipediaAnalyticsView({
   const wordCountData  = useMemo(() => graph ? topWordCountPages(graph)     : [],    [graph]);
   const categoryData  = useMemo(() => graph ? topCategories(graph.nodes)    : [],    [graph]);
   const categoryCountData = useMemo(() => graph ? countCategories(graph.nodes) : [], [graph]);
-  const bfsData       = useMemo(() => localBfs ? bfsLevelDistribution(localBfs) : [], [localBfs]);
-  const dfsData       = useMemo(() => localDfs ? bfsLevelDistribution(localDfs) : [], [localDfs]);
   const degreeMap     = useMemo(() => graph ? wikiDegreeMap(graph) : new Map<string, number>(), [graph]);
   const degreeRecords = useMemo(() => graph ? wikiDegreeRecords(graph) : [], [graph]);
   const thematicRankData = useMemo(() => topThematicPages(degreeRecords, 20), [degreeRecords]);
@@ -340,12 +301,8 @@ export function WikipediaAnalyticsView({
 
   useEffect(() => {
     const resetTimer = window.setTimeout(() => {
-      setLocalBfs(null);
-      setBfsError(null);
-      setBfsSelectedLevel(null);
-      setLocalDfs(null);
-      setDfsError(null);
-      setDfsSelectedLevel(null);
+      setReportData(null);
+      setReportError(null);
     }, 0);
 
     return () => window.clearTimeout(resetTimer);
@@ -392,26 +349,6 @@ export function WikipediaAnalyticsView({
     outgoing: outgoingRows,
     bridges: bridgeRows,
   }), [bridgeRows, incomingRows, outgoingRows]);
-
-  const bfsNarratives = useMemo(() => {
-    if (!graph) return [];
-    return buildTraversalNarratives({
-      kind: "BFS",
-      graph,
-      result: localBfs,
-      levelData: bfsData,
-    });
-  }, [bfsData, graph, localBfs]);
-
-  const dfsNarratives = useMemo(() => {
-    if (!graph) return [];
-    return buildTraversalNarratives({
-      kind: "DFS",
-      graph,
-      result: localDfs,
-      levelData: dfsData,
-    });
-  }, [dfsData, graph, localDfs]);
 
   const networkInsights = useMemo(() => {
     if (!graph) return [];
@@ -565,85 +502,22 @@ export function WikipediaAnalyticsView({
     ] satisfies InsightCardData[];
   }, [categoryCountData, graph]);
 
-  const bfsInsights = useMemo(() => {
-    if (!graph || !localBfs || bfsData.length === 0) return [];
-    const reached = localBfs.levels.size;
-    const widestLevel = [...bfsData].sort((a, b) => b.count - a.count)[0];
-
-    return [
-      {
-        label: "Alcance",
-        value: `${reached}/${graph.nodes.length}`,
-        detail: `${formatPercent(reached / graph.nodes.length)} dos artigos foram alcançados.`,
-        tone: "blue",
-      },
-      {
-        label: "Profundidade máxima",
-        value: `${localBfs.maxLevel}`,
-        detail: "Maior nível encontrado a partir do artigo de origem.",
-        tone: "purple",
-      },
-      {
-        label: "Camada mais larga",
-        value: widestLevel ? widestLevel.label : "-",
-        detail: widestLevel ? `${widestLevel.count} artigos nesse nível.` : "Sem distribuição por nível.",
-        tone: "green",
-      },
-    ] satisfies InsightCardData[];
-  }, [bfsData, graph, localBfs]);
-
-  const dfsInsights = useMemo(() => {
-    if (!graph || !localDfs || dfsData.length === 0) return [];
-    const visited = localDfs.levels.size;
-    const deepestLevel = [...dfsData].sort((a, b) => b.level - a.level)[0];
-
-    return [
-      {
-        label: "Visitados",
-        value: `${visited}/${graph.nodes.length}`,
-        detail: `${formatPercent(visited / graph.nodes.length)} dos artigos entraram na árvore DFS.`,
-        tone: "blue",
-      },
-      {
-        label: "Maior profundidade",
-        value: `${localDfs.maxLevel}`,
-        detail: "Profundidade máxima atingida pela travessia.",
-        tone: "purple",
-      },
-      {
-        label: "Última camada",
-        value: deepestLevel ? deepestLevel.label : "-",
-        detail: deepestLevel ? `${deepestLevel.count} artigo(s) no nível mais profundo.` : "Sem distribuição por profundidade.",
-        tone: "green",
-      },
-    ] satisfies InsightCardData[];
-  }, [dfsData, graph, localDfs]);
-
-  function calcBfs() {
+  async function calcReport() {
     if (!graph) return;
-    setBfsError(null);
-    const key = bfsOrigin.trim();
-    if (!key) { setBfsError("Informe o artigo de origem."); return; }
-    if (!nodeMap.has(key)) { setBfsError(`"${key}" não encontrado.`); return; }
-    setLocalBfs(runBfs(asGraphData(graph), key));
-    setBfsSelectedLevel(null);
-  }
-
-  function calcDfs() {
-    if (!graph) return;
-    setDfsError(null);
-    const key = dfsOrigin.trim();
-    if (!key) { setDfsError("Informe o artigo de origem."); return; }
-    if (!nodeMap.has(key)) { setDfsError(`"${key}" não encontrado.`); return; }
-    setLocalDfs(runDfs(asGraphData(graph), key));
-    setDfsSelectedLevel(null);
-  }
-
-  function articlesAtLevel(levels: Map<string, number>, level: number) {
-    return [...levels.entries()]
-      .filter(([, l]) => l === level)
-      .map(([key]) => ({ key }))
-      .sort((a, b) => a.key.localeCompare(b.key));
+    setReportError(null);
+    const key = relativeSeed;
+    if (!key || key === "-") { setReportError("Defina um artigo de busca primeiro."); return; }
+    if (!nodeMap.has(key)) { setReportError(`"${key}" não encontrado no subgrafo.`); return; }
+    setReportRunning(true);
+    setReportData(null);
+    // Yield so the "calculating…" state actually paints before the sync work.
+    await new Promise((r) => setTimeout(r, 0));
+    const data = asGraphData(graph);
+    const bfs = timedBfs(data, key, depth);
+    await new Promise((r) => setTimeout(r, 0));
+    const dfs = timedDfs(data, key, depth);
+    setReportData({ bfs, dfs, origin: key, depth });
+    setReportRunning(false);
   }
 
   if (!graph) {
@@ -873,156 +747,87 @@ export function WikipediaAnalyticsView({
           </Section>
         )}
 
-        {tab === "bfs" && (
+        {tab === "report" && (
           <Section
-            title={`Distribuição por Nível BFS · ${relativeSeed}`}
-            subtitle="Artigos alcançados por nível a partir da busca atual"
-            insights={bfsInsights}
+            title={`Report de Desempenho · ${relativeSeed}`}
+            subtitle={`Tempo de execução de BFS e DFS limitados à profundidade ${depth} (definida no Mapa)`}
           >
-            <div className="mb-4 flex items-end gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Artigo de origem</label>
-                <input
-                  list="wiki-bfs-nodes"
-                  value={bfsOrigin}
-                  onChange={(e) => setBfsOrigin(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && calcBfs()}
-                  placeholder="Ex: Underwater exploration"
-                  className="w-64 rounded border border-zinc-200 px-2.5 py-1.5 text-xs text-zinc-800 outline-none focus:border-zinc-400"
-                />
-                <datalist id="wiki-bfs-nodes">
-                  {graph.nodes.map((n) => <option key={n.key} value={n.key} />)}
-                </datalist>
-              </div>
+            <div className="mb-4 flex items-center gap-3">
               <button
-                onClick={calcBfs}
-                className="rounded bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700"
+                onClick={calcReport}
+                disabled={reportRunning}
+                className="rounded bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700 disabled:opacity-50"
               >
-                Calcular
+                {reportRunning ? "Calculando…" : "Calcular"}
               </button>
-              {bfsError && <p className="text-xs text-red-500">{bfsError}</p>}
+              <span className="text-[10px] text-zinc-500">
+                Origem: <span className="font-semibold text-zinc-800">{relativeSeed}</span> ·
+                profundidade: <span className="font-semibold text-zinc-800">{depth}</span> ·
+                subgrafo: {graph.nodes.length} artigos
+              </span>
+              {reportError && <p className="text-xs text-red-500">{reportError}</p>}
             </div>
-            {bfsData.length > 0 ? (
-              <>
-                <NarrativePanel items={bfsNarratives} />
-                <p className="mb-3 text-xs text-zinc-600">
-                  <span className="font-semibold text-zinc-900">{bfsData.length - 1}</span> níveis ·{" "}
-                  <span className="font-semibold text-zinc-900">{localBfs!.levels.size - 1}</span> artigos alcançados a partir de{" "}
-                  <span className="font-semibold text-zinc-900">{localBfs!.originKey}</span>
-                  {bfsSelectedLevel === null && <span className="ml-2 text-zinc-400">· clique em uma barra para ver os artigos</span>}
-                </p>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={bfsData} margin={{ top: 10, right: 16, bottom: 8, left: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" />
-                    <XAxis dataKey="label" tick={TICK} />
-                    <YAxis tick={TICK} />
-                    <Tooltip {...TOOLTIP_STYLE} />
-                    <Bar
-                      dataKey="count"
-                      name="Artigos"
-                      fill="#1a1a1a"
-                      radius={[3, 3, 0, 0]}
-                      cursor="pointer"
-                      onClick={(d) => {
-                        const level = levelFromBarClick(d);
-                        if (level !== null) setBfsSelectedLevel(bfsSelectedLevel === level ? null : level);
-                      }}
-                    >
-                      <LabelList dataKey="count" position="top" style={{ fontSize: 10, fill: "#374151" }} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                {bfsSelectedLevel !== null && (
-                  <LevelArticleList
-                    level={bfsSelectedLevel}
-                    articles={articlesAtLevel(localBfs!.levels, bfsSelectedLevel)}
-                    onClose={() => setBfsSelectedLevel(null)}
-                  />
-                )}
-              </>
-            ) : (
+
+            {reportRunning && (
               <div className="flex h-48 items-center justify-center text-sm text-zinc-500">
-                Selecione um artigo de origem e clique em Calcular
+                Calculando…
               </div>
             )}
-          </Section>
-        )}
 
-        {tab === "dfs" && (
-          <Section
-            title={`Distribuição por Nível DFS · ${relativeSeed}`}
-            subtitle="Artigos visitados por profundidade a partir da busca atual"
-            insights={dfsInsights}
-          >
-            <div className="mb-4 flex items-end gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Artigo de origem</label>
-                <input
-                  list="wiki-dfs-nodes"
-                  value={dfsOrigin}
-                  onChange={(e) => setDfsOrigin(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && calcDfs()}
-                  placeholder="Ex: Underwater exploration"
-                  className="w-64 rounded border border-zinc-200 px-2.5 py-1.5 text-xs text-zinc-800 outline-none focus:border-zinc-400"
-                />
-                <datalist id="wiki-dfs-nodes">
-                  {graph.nodes.map((n) => <option key={n.key} value={n.key} />)}
-                </datalist>
-              </div>
-              <button
-                onClick={calcDfs}
-                className="rounded bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700"
-              >
-                Calcular
-              </button>
-              {dfsError && <p className="text-xs text-red-500">{dfsError}</p>}
-            </div>
-            {dfsData.length > 0 ? (
+            {!reportRunning && reportData && (
               <>
-                <NarrativePanel items={dfsNarratives} />
                 <p className="mb-3 text-xs text-zinc-600">
-                  <span className="font-semibold text-zinc-900">{dfsData.length - 1}</span> níveis ·{" "}
-                  <span className="font-semibold text-zinc-900">{localDfs!.levels.size - 1}</span> artigos visitados a partir de{" "}
-                  <span className="font-semibold text-zinc-900">{localDfs!.originKey}</span>
-                  {dfsSelectedLevel === null && <span className="ml-2 text-zinc-400">· clique em uma barra para ver os artigos</span>}
+                  Origem: <span className="font-semibold text-zinc-900">{reportData.origin}</span> ·
+                  profundidade máx: <span className="font-semibold text-zinc-900">{reportData.depth}</span>
                 </p>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={dfsData} margin={{ top: 10, right: 16, bottom: 8, left: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" />
-                    <XAxis dataKey="label" tick={TICK} />
-                    <YAxis tick={TICK} />
-                    <Tooltip {...TOOLTIP_STYLE} />
-                    <Bar
-                      dataKey="count"
-                      name="Artigos"
-                      fill="#1a1a1a"
-                      radius={[3, 3, 0, 0]}
-                      cursor="pointer"
-                      onClick={(d) => {
-                        const level = levelFromBarClick(d);
-                        if (level !== null) setDfsSelectedLevel(dfsSelectedLevel === level ? null : level);
-                      }}
-                    >
-                      <LabelList dataKey="count" position="top" style={{ fontSize: 10, fill: "#374151" }} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                {dfsSelectedLevel !== null && (
-                  <LevelArticleList
-                    level={dfsSelectedLevel}
-                    articles={articlesAtLevel(localDfs!.levels, dfsSelectedLevel)}
-                    onClose={() => setDfsSelectedLevel(null)}
-                  />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <ReportCard kind="BFS" report={reportData.bfs} />
+                  <ReportCard kind="DFS" report={reportData.dfs} />
+                </div>
+                {!reportData.bfs.memSupported && (
+                  <p className="mt-3 text-[11px] text-zinc-500">
+                    Consumo de memória só está disponível em navegadores baseados em Chromium (Chrome / Edge / Brave).
+                  </p>
                 )}
               </>
-            ) : (
+            )}
+
+            {!reportRunning && !reportData && !reportError && (
               <div className="flex h-48 items-center justify-center text-sm text-zinc-500">
-                Selecione um artigo de origem e clique em Calcular
+                Clique em Calcular para gerar o report
               </div>
             )}
           </Section>
         )}
       </div>
+    </div>
+  );
+}
+
+function ReportCard({ kind, report }: { kind: "BFS" | "DFS"; report: RunReport }) {
+  const fmt = (v: number | null) => (v === null ? "—" : `${v.toFixed(2)} MB`);
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+      <p className="text-xs font-bold text-zinc-900">{kind}</p>
+      <dl className="mt-2 grid grid-cols-2 gap-y-1.5 text-xs">
+        <dt className="text-zinc-500">Tempo</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{report.elapsedMs.toFixed(2)} ms</dd>
+
+        <dt className="text-zinc-500">Alcançados</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{report.reachable}</dd>
+
+        <dt className="text-zinc-500">Maior nível</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{report.maxLevel}</dd>
+
+        <dt className="text-zinc-500">RAM base</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memBaselineMB)}</dd>
+
+        <dt className="text-zinc-500">RAM pico</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memPeakMB)}</dd>
+
+        <dt className="text-zinc-500">RAM média</dt>
+        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memAverageMB)}</dd>
+      </dl>
     </div>
   );
 }

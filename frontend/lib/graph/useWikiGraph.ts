@@ -5,6 +5,10 @@ import type {
   WikiGraphData, WikiNode, WikiEdge,
   WikiAdjacency, WikiPagesData,
 } from "./wiki_types";
+import {
+  MAX_RENDERED_NODES_DEFAULT,
+  MAX_DEPTH_DEFAULT,
+} from "../../wiki_constants";
 
 export type Algorithm = "bfs" | "dfs" | "ego";
 
@@ -223,8 +227,8 @@ export function useWikiGraph(): WikiGraphState {
   const [adj,       setAdj]       = useState<WikiAdjacency | null>(null);
   const [pagesData, setPagesData] = useState<WikiPagesData | null>(null);
   const [seed,      setSeed]      = useState(DEFAULT_SEED);
-  const [depth,     setDepth]     = useState(3);
-  const [maxNodes,  setMaxNodes]  = useState(800);
+  const [depth,     setDepth]     = useState(MAX_DEPTH_DEFAULT);
+  const [maxNodes,  setMaxNodes]  = useState(MAX_RENDERED_NODES_DEFAULT);
   const [algorithm, setAlgorithm] = useState<Algorithm>("bfs");
 
   useEffect(() => {

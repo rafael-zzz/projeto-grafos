@@ -4,8 +4,26 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { WikiGraphData, WikiNode } from "@/lib/graph/wiki_types";
 import type { WikiGraphState } from "@/lib/graph/useWikiGraph";
+import {
+  MAX_RENDERED_EDGES_DEFAULT,
+  RENDER_SPEED_DEFAULT,
+  MIN_POSSIBLE_NODES,
+  MAX_POSSIBLE_NODES,
+  NODES_STEP,
+  MIN_POSSIBLE_EDGES,
+  MAX_POSSIBLE_EDGES,
+  EDGES_STEP,
+  MIN_POSSIBLE_DEPTH,
+  MAX_POSSIBLE_DEPTH,
+  MIN_RENDER_SPEED,
+  MAX_RENDER_SPEED,
+  RENDER_SPEED_STEP,
+} from "@/wiki_constants";
 
-const DEPTH_OPTIONS = [0, 1, 2, 3, 4, 5, 6];
+const DEPTH_OPTIONS = Array.from(
+  { length: MAX_POSSIBLE_DEPTH - MIN_POSSIBLE_DEPTH + 1 },
+  (_, i) => MIN_POSSIBLE_DEPTH + i,
+);
 const EDGE_BUCKETS  = 4;
 const FADE_FRAMES   = 15; // frames to fade a node in (~250ms at 60fps)
 
@@ -72,8 +90,8 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
   // ── React state — drives UI controls + article panel only ────────────────
   const [step,           setStep]           = useState(0);
   const [playing,        setPlaying]        = useState(false);
-  const [speed,          setSpeed]          = useState(12);
-  const [maxEdgesPerNode,setMaxEdgesPerNode] = useState(8);
+  const [speed,          setSpeed]          = useState(RENDER_SPEED_DEFAULT);
+  const [maxEdgesPerNode,setMaxEdgesPerNode] = useState(MAX_RENDERED_EDGES_DEFAULT);
   const [selectedKey,    setSelectedKey]    = useState<string | null>(null);
 
   // ── Render refs — read every frame by the RAF loop, never cause re-renders
@@ -87,7 +105,7 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
   const bfsGhostSetRef   = useRef(new Set<string>());
   const stepRef          = useRef(0);
   const nodeEnteredAtRef = useRef(new Map<string, number>());
-  const maxEdgesRef      = useRef(8);
+  const maxEdgesRef      = useRef(MAX_RENDERED_EDGES_DEFAULT);
   const algorithmRef     = useRef(algorithm);
   const selectedKeyRef   = useRef<string | null>(null);
   // Projected positions stored each frame for click hit-testing
@@ -485,15 +503,15 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
 
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Máx. nós</span>
-            <input type="number" min={50} max={2000} step={50} value={maxNodes}
-              onChange={(e) => setMaxNodes(Math.max(50, Math.min(2000, Number(e.target.value))))}
+            <input type="number" min={MIN_POSSIBLE_NODES} max={MAX_POSSIBLE_NODES} step={NODES_STEP} value={maxNodes}
+              onChange={(e) => setMaxNodes(Math.max(MIN_POSSIBLE_NODES, Math.min(MAX_POSSIBLE_NODES, Number(e.target.value))))}
               className="w-20 rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-800 outline-none focus:border-zinc-400" />
           </div>
 
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Arestas/nó</span>
-            <input type="number" min={0} max={50} step={1} value={maxEdgesPerNode}
-              onChange={(e) => setMaxEdgesPerNode(Math.max(0, Math.min(50, Number(e.target.value))))}
+            <input type="number" min={MIN_POSSIBLE_EDGES} max={MAX_POSSIBLE_EDGES} step={EDGES_STEP} value={maxEdgesPerNode}
+              onChange={(e) => setMaxEdgesPerNode(Math.max(MIN_POSSIBLE_EDGES, Math.min(MAX_POSSIBLE_EDGES, Number(e.target.value))))}
               className="w-16 rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-800 outline-none focus:border-zinc-400" />
           </div>
         </div>
@@ -517,9 +535,9 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
           </span>
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-[10px] text-zinc-400">Lento</span>
-            <input type="range" min={5} max={200} step={5}
-              value={205 - speed}
-              onChange={(e) => setSpeed(205 - Number(e.target.value))}
+            <input type="range" min={MIN_RENDER_SPEED} max={MAX_RENDER_SPEED} step={RENDER_SPEED_STEP}
+              value={MIN_RENDER_SPEED + MAX_RENDER_SPEED - speed}
+              onChange={(e) => setSpeed(MIN_RENDER_SPEED + MAX_RENDER_SPEED - Number(e.target.value))}
               className="w-20 h-1 accent-zinc-800" />
             <span className="text-[10px] text-zinc-400">Rápido</span>
           </div>

@@ -50,6 +50,7 @@ function WikipediaWrapper({ view }: { view: View }) {
         seed={wikiState.seed}
         setSeed={wikiState.setSeed}
         nodeKeys={wikiState.nodeKeys}
+        depth={wikiState.depth}
       />
     );
 }

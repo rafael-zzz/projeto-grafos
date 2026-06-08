@@ -1,8 +1,9 @@
 PYTHON=python3
 SCRIPTS=src/airports_pipeline
 WIKI=src/wikipedia_pipeline
+VENV=.venv
 
-.PHONY: parse regions validate edges check all wiki-build wiki-layout wiki-export wiki
+.PHONY: parse regions validate edges check all wiki-build wiki-layout wiki-export wiki frontend
 
 parse:
 	$(PYTHON) $(SCRIPTS)/dataset_cleaning.py
@@ -36,4 +37,18 @@ wiki-export:
 wiki-adjacency:
 	$(PYTHON) $(WIKI)/adjacency_builder.py
 
-wiki: wiki-clean wiki-build wiki-layout wiki-export wiki-adjacency
+wiki:
+	$(PYTHON) -m venv $(VENV) && \
+	. $(VENV)/bin/activate && \
+	pip install -r requirements.txt && \
+	python $(WIKI)/dataset_cleaning.py && \
+	python $(WIKI)/graph_builder.py && \
+	python $(WIKI)/layout_builder.py && \
+	python $(WIKI)/graph_exporter.py && \
+	python $(WIKI)/adjacency_builder.py && \
+	deactivate
+
+frontend:
+	cd frontend && \
+	if [ ! -d node_modules ]; then npm i; fi && \
+	npm run dev
