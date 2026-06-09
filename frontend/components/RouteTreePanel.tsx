@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import type { GraphData, RouteTreeData } from "@/lib/graph/types";
 import {
 	buildRouteTreeData,
@@ -17,6 +17,7 @@ export function RouteTreePanel({
 	onResult,
 	selectionTarget,
 	setSelectionTarget,
+	onExportPng,
 	onClose,
 }: {
 	graph: GraphData;
@@ -26,31 +27,10 @@ export function RouteTreePanel({
 	onResult: (result: RouteTreeData | null) => void;
 	selectionTarget: RouteSelectionTarget;
 	setSelectionTarget: Dispatch<SetStateAction<RouteSelectionTarget>>;
+	onExportPng: () => void;
 	onClose: () => void;
 }) {
 	const [error, setError] = useState<string | null>(null);
-	const previewVersion = data
-		? data.routes.map((route) => `${route.id}:${route.origin}->${route.destination}`).join("|")
-		: "preview";
-	const previewSrc = `/out/arvore_percurso.png?v=${encodeURIComponent(previewVersion)}`;
-	const [previewStatus, setPreviewStatus] = useState<"loading" | "ready" | "error">("loading");
-
-	useEffect(() => {
-		let mounted = true;
-		setPreviewStatus("loading");
-		const image = new Image();
-		image.onload = () => {
-			if (mounted) setPreviewStatus("ready");
-		};
-		image.onerror = () => {
-			if (mounted) setPreviewStatus("error");
-		};
-		image.src = previewSrc;
-		return () => {
-			mounted = false;
-		};
-	}, [previewSrc]);
-
 	const sharedEdges = data?.edges.filter((edge) => (edge.attributes.routes?.length ?? 0) > 1) ?? [];
 	const editingNote = selectionTarget ? `Clique no mapa para preencher ${selectionTarget.field === "origin" ? "a origem" : "o destino"}.` : "Clique em um campo e depois no mapa para preencher.";
 
@@ -257,31 +237,17 @@ export function RouteTreePanel({
 				)}
 
 				<div className="border-t border-gray-100 px-4 py-3">
-					<div className="flex items-center justify-between gap-2">
-						<p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Pré-visualização PNG</p>
-						<a href="/out/arvore_percurso.html" target="_blank" rel="noreferrer" className="text-[10px] font-semibold text-gray-500 hover:text-gray-900">
-							Abrir em nova aba
-						</a>
-					</div>
-					<div className="mt-3 overflow-hidden rounded border border-gray-200 bg-gray-50 px-4 py-3">
-						<p className="text-xs text-gray-600">Imagem exportada em <strong>out/arvore_percurso.png</strong>.</p>
-						{previewStatus === "ready" ? (
-							<div className="mt-3">
-								<img src={previewSrc} alt="Árvore de percurso" className="h-auto w-full border" />
-							</div>
-						) : previewStatus === "loading" ? (
-							<div className="mt-3 rounded border border-dashed border-gray-200 bg-white px-4 py-6 text-xs text-gray-500">
-								Carregando pré-visualização PNG...
-							</div>
-						) : (
-							<ul className="mt-2 text-xs text-gray-600">
-								<li><a href="/graph.json" className="text-gray-700 underline">/graph.json</a> — Dump do grafo pela visualização.</li>
-								<li><a href="/out/arvore_percurso.html" className="text-gray-700 underline">out/arvore_percurso.html</a> — HTML gerado.</li>
-								<li><a href="/out/arvore_percurso.png" className="text-gray-700 underline">out/arvore_percurso.png</a> — Imagem estática gerada.</li>
-							</ul>
-						)}
-						<p className="mt-3 text-[10px] text-gray-400">A pré-visualização recarrega quando o percurso gerado muda.</p>
-					</div>
+					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Exportar</p>
+					<button
+						onClick={onExportPng}
+						disabled={!data}
+						className="w-full rounded bg-gray-900 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+					>
+						Exportar mapa como PNG
+					</button>
+					<p className="mt-2 text-[10px] text-gray-400">
+						Captura o mapa atual com as rotas exibidas.
+					</p>
 				</div>
 			</div>
 		</div>
