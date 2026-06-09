@@ -8,16 +8,16 @@ Modelagem e análise da malha aérea nacional usando grafos. O dataset é compos
 pip install -r requirements.txt
 ```
 
-## Pipeline de dados
+## Pipeline de dados — Aeroportos
 
-Os arquivos `data/airports.csv` e `data/edges.csv` são gerados a partir do dataset bruto (`data/aeroportos_data.csv`). Execute os alvos do Makefile **na ordem**:
+Os arquivos de saída são gerados a partir do dataset bruto (`data/airports/aeroportos_data.csv`). Execute os alvos do Makefile **na ordem**:
 
 ```bash
-make parse      # limpa o dataset bruto → data/clean.csv
-make regions    # constrói os vértices  → data/airports.csv
+make parse      # limpa o dataset bruto
+make regions    # constrói os vértices
 make validate   # verifica cobertura de aeroportos
-make edges      # constrói as arestas   → data/edges.csv
-make check      # extrai fluxo regional → data/flight_regions.csv
+make edges      # constrói as arestas
+make check      # extrai fluxo regional
 
 # ou tudo de uma vez:
 make all
@@ -27,9 +27,10 @@ Gera os arquivos em `out/`:
 - `global.json` — ordem, tamanho, densidade do grafo
 - `regioes.json` — mesmas métricas por região
 - `graus.csv` — grau de cada aeroporto
-- `ego_aeroportos.csv` / `.json` — métricas de rede ego por aeroporto
+- `ego_aeroportos.csv` — métricas de rede ego por aeroporto
 - `graph.json` — exportado também para `frontend/public/`
 - `arvore_percurso.png` / `arvore_percurso.html` — árvore de percurso dos caminhos obrigatórios
+- `data/airports/adjacencias_aeroportos.csv` — arestas com justificativa (gerado por `src/airports_pipeline/adjacencias_builder.py`)
 
 ## CLI
 
@@ -52,16 +53,8 @@ python3 src/cli.py dijkstra SBGR SBRF
 # Menor caminho — Bellman-Ford (suporta pesos negativos)
 python3 src/cli.py bellman-ford SBGR SBRF
 
-# Calcular rotas em lote a partir de data/rotas.csv → out/distancias_rotas.csv
+# Calcular rotas em lote a partir de data/airports/rotas.csv → out/distancias_rotas.csv
 python3 src/cli.py routes
-```
-
-## Visualizações
-
-Gera os gráficos analíticos em `out/`:
-
-```bash
-python3 src/visualization.py
 ```
 
 ## Testes
@@ -73,22 +66,33 @@ pytest tests/
 ## Frontend
 
 ```bash
-cd frontend
-npm install
-npm run dev
+make frontend
 ```
 
-Requer que `out/graph.json` (ou `frontend/public/graph.json`) tenha sido gerado via `python3 src/cli.py solve`.
+Requer que `frontend/public/graph.json` tenha sido gerado via `python3 src/cli.py solve`.
 
 ## Pipeline Wikipedia
 
-O grafo interativo da Wikipedia é gerado a partir de `data/wikipedia/pages_export.csv` e `data/wikipedia/links_export.csv`. Execute:
+O grafo interativo da Wikipedia é gerado a partir de `data/wikipedia/pages_export.csv` e `data/wikipedia/links_export.csv`.
 
+### Extração do dataset (apenas na primeira vez)
+
+O dataset está dividido em dois arquivos (`wikipedia.zip` + `wikipedia.z01`).
+
+**Mac/Linux** — o Makefile extrai automaticamente:
 ```bash
 make wiki
 ```
 
-Isso roda cinco etapas em sequência:
+**Windows** — extraia manualmente com [7-Zip](https://www.7-zip.org/) antes de rodar o pipeline:
+1. Clique com o botão direito em `wikipedia.zip` → 7-Zip → Extrair aqui
+2. Mova a pasta `wikipedia/` para dentro de `data/`
+3. Execute o pipeline:
+```bash
+make wiki
+```
+
+### Etapas do pipeline
 
 ```bash
 make wiki-clean      # filtra links internos e calcula 2-core → data/wikipedia/clean_*.csv
@@ -98,4 +102,4 @@ make wiki-export     # exporta grafo estático                  → frontend/pub
 make wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
 ```
 
-> **Nota:** `frontend/public/wiki_adjacency.json` (~14 MB) está no `.gitignore` por ser um arquivo grande e gerado. Após clonar o repositório, rode `make wiki-adjacency` (ou `make wiki` completo) para recriá-lo. Os demais arquivos (`wiki_graph.json`, `wiki_pages.json`) estão versionados e não precisam ser regerados.
+> **Nota:** `frontend/public/wiki_adjacency.json` (~14 MB) está no `.gitignore`. Após clonar o repositório, rode `make wiki-adjacency` (ou `make wiki` completo) para recriá-lo.
