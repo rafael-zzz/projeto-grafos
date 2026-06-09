@@ -32,7 +32,7 @@ import {
   type WikiDegreeRecord,
   type WikiNarrative,
 } from "@/lib/graph/wikiAnalytics";
-import { timedBfs, timedDfs, timedDijkstra, timedBellmanFord, type RunReport, type DijkstraReport, type BellmanFordReport } from "@/lib/graph/wikiReport";
+import { timedBfs, timedDfs, timedBellmanFord, type RunReport, type BellmanFordReport } from "@/lib/graph/wikiReport";
 
 type Tab = "dist" | "ranking" | "categorias" | "conexoes" | "report";
 
@@ -273,12 +273,11 @@ export function WikipediaAnalyticsView({
     depth: number;
   } | null>(null);
 
-  // Path algo state — Dijkstra / Bellman-Ford (separate calc)
+  // Path algo state — Bellman-Ford only (Wikipedia has negative weights; Dijkstra removed)
   const [pathDest, setPathDest] = useState("");
   const [pathRunning, setPathRunning] = useState(false);
   const [pathError, setPathError] = useState<string | null>(null);
   const [pathData, setPathData] = useState<{
-    dijkstra: DijkstraReport;
     bf: BellmanFordReport;
     origin: string;
     destination: string;
@@ -543,10 +542,8 @@ export function WikipediaAnalyticsView({
     setPathData(null);
     await new Promise((r) => setTimeout(r, 0));
     const data = asGraphData(graph);
-    const dijkstra = timedDijkstra(data, origin, dest);
-    await new Promise((r) => setTimeout(r, 0));
     const bf = timedBellmanFord(data, origin, dest);
-    setPathData({ dijkstra, bf, origin, destination: dest });
+    setPathData({ bf, origin, destination: dest });
     setPathRunning(false);
   }
 
@@ -829,10 +826,12 @@ export function WikipediaAnalyticsView({
               </>
             )}
 
-            {/* Dijkstra / Bellman-Ford — sempre visível após BFS/DFS calculados */}
-            {/* Dijkstra / Bellman-Ford — sempre visível, independente do BFS/DFS */}
+            {/* Bellman-Ford — sempre visível, independente do BFS/DFS */}
             <div className="mt-6 border-t border-zinc-100 pt-5">
-              <p className="mb-3 text-xs font-bold text-zinc-900">Dijkstra e Bellman-Ford</p>
+              <p className="mb-1 text-xs font-bold text-zinc-900">Bellman-Ford</p>
+              <p className="mb-3 text-[10px] text-zinc-400">
+                Dijkstra removido — arestas de Wikipédia têm pesos negativos (word count invertido).
+              </p>
               <div className="mb-4 flex flex-wrap items-center gap-3">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Destino</span>
@@ -860,15 +859,12 @@ export function WikipediaAnalyticsView({
 
               {pathRunning && (
                 <div className="flex h-24 items-center justify-center text-sm text-zinc-500">
-                  Calculando Dijkstra e Bellman-Ford…
+                  Calculando Bellman-Ford…
                 </div>
               )}
 
               {!pathRunning && !pathData && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <PathAlgoCardEmpty kind="Dijkstra" />
-                  <PathAlgoCardEmpty kind="Bellman-Ford" />
-                </div>
+                <BellmanFordCardEmpty />
               )}
 
               {!pathRunning && pathData && (
@@ -878,10 +874,7 @@ export function WikipediaAnalyticsView({
                     {" → "}
                     <span className="font-semibold text-zinc-900">{pathData.destination}</span>
                   </p>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <PathAlgoCard kind="Dijkstra" report={pathData.dijkstra} />
-                    <BellmanFordCard report={pathData.bf} />
-                  </div>
+                  <BellmanFordCard report={pathData.bf} />
                 </>
               )}
             </div>
@@ -920,53 +913,16 @@ function ReportCard({ kind, report }: { kind: "BFS" | "DFS"; report: RunReport }
   );
 }
 
-function PathAlgoCardEmpty({ kind }: { kind: "Dijkstra" | "Bellman-Ford" }) {
+function BellmanFordCardEmpty() {
   return (
     <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
-      <p className="text-xs font-bold text-zinc-900">{kind}</p>
+      <p className="text-xs font-bold text-zinc-900">Bellman-Ford</p>
       <dl className="mt-2 grid grid-cols-2 gap-y-1.5 text-xs">
-        {["Tempo", "Custo", "Saltos", "RAM base", "RAM pico"].map((label) => (
+        {["Tempo", "Ciclo negativo", "Custo", "Saltos", "RAM base", "RAM pico"].map((label) => (
           <><dt key={label} className="text-zinc-500">{label}</dt>
           <dd className="text-right font-semibold text-zinc-400 tabular-nums">—</dd></>
         ))}
       </dl>
-    </div>
-  );
-}
-
-function PathAlgoCard({ kind, report }: { kind: "Dijkstra"; report: DijkstraReport }) {
-  const fmt = (v: number | null) => (v === null ? "—" : `${v.toFixed(2)} MB`);
-  return (
-    <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
-      <p className="text-xs font-bold text-zinc-900">{kind}</p>
-      <dl className="mt-2 grid grid-cols-2 gap-y-1.5 text-xs">
-        <dt className="text-zinc-500">Tempo</dt>
-        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{report.elapsedMs.toFixed(2)} ms</dd>
-
-        <dt className="text-zinc-500">Custo</dt>
-        <dd className="text-right font-semibold text-zinc-900 tabular-nums">
-          {report.cost !== null ? report.cost.toFixed(4) : "∞"}
-        </dd>
-
-        <dt className="text-zinc-500">Saltos</dt>
-        <dd className="text-right font-semibold text-zinc-900 tabular-nums">
-          {report.path.length > 0 ? report.path.length - 1 : "—"}
-        </dd>
-
-        <dt className="text-zinc-500">RAM base</dt>
-        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memBaselineMB)}</dd>
-
-        <dt className="text-zinc-500">RAM pico</dt>
-        <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memPeakMB)}</dd>
-      </dl>
-      {report.path.length > 0 && (
-        <div className="mt-3 border-t border-zinc-100 pt-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Caminho</p>
-          <p className="mt-1 text-[11px] text-zinc-700 leading-relaxed break-words">
-            {report.path.join(" → ")}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
@@ -1001,12 +957,31 @@ function BellmanFordCard({ report }: { report: BellmanFordReport }) {
         <dt className="text-zinc-500">RAM pico</dt>
         <dd className="text-right font-semibold text-zinc-900 tabular-nums">{fmt(report.memPeakMB)}</dd>
       </dl>
+
       {report.path.length > 0 && (
         <div className="mt-3 border-t border-zinc-100 pt-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Caminho</p>
-          <p className="mt-1 text-[11px] text-zinc-700 leading-relaxed break-words">
-            {report.path.join(" → ")}
-          </p>
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+              Caminho · {report.path.length - 1} salto{report.path.length - 1 !== 1 ? "s" : ""}
+            </p>
+            <span className="text-[10px] text-zinc-400">{report.path.length} artigos</span>
+          </div>
+          <ol className="max-h-52 overflow-y-auto rounded border border-zinc-100 bg-zinc-50 py-1 text-[11px] text-zinc-700">
+            {report.path.map((node, i) => (
+              <li
+                key={`${node}-${i}`}
+                className={`flex items-start gap-2 px-3 py-1 ${i < report.path.length - 1 ? "border-b border-zinc-100" : ""}`}
+              >
+                <span className="shrink-0 w-5 text-right font-mono text-zinc-400 select-none">{i + 1}</span>
+                <span className={`leading-snug break-words min-w-0 ${i === 0 || i === report.path.length - 1 ? "font-semibold text-zinc-900" : ""}`}>
+                  {node}
+                </span>
+                {i < report.path.length - 1 && (
+                  <span className="shrink-0 ml-auto text-zinc-300 select-none">↓</span>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
       )}
     </div>

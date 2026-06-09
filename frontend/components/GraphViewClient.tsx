@@ -55,6 +55,40 @@ function WikipediaWrapper({ view }: { view: View }) {
     );
 }
 
+// ─── theme tokens ────────────────────────────────────────────────────────────
+const THEME = {
+  airports: {
+    nav:          "bg-slate-950 border-amber-500/30",
+    header:       "border-amber-500/20",
+    title:        "text-amber-400 font-mono tracking-widest uppercase text-[10px]",
+    toggleWrap:   "border-amber-500/40 bg-slate-800",
+    toggleActive: "bg-amber-400 text-slate-950",
+    toggleIdle:   "bg-transparent text-slate-400 hover:bg-slate-800 hover:text-amber-300",
+    toggleDivider:"border-amber-500/20",
+    navActive:    "bg-amber-400 text-slate-950",
+    navIdle:      "text-slate-400 hover:bg-slate-800 hover:text-amber-300",
+    navLabelActive:"text-slate-950",
+    navLabelIdle: "text-slate-300",
+    navDescActive:"text-slate-700",
+    navDescIdle:  "text-slate-500",
+  },
+  wikipedia: {
+    nav:          "bg-white border-zinc-200",
+    header:       "border-zinc-100",
+    title:        "text-zinc-800",
+    toggleWrap:   "border-zinc-200 bg-white",
+    toggleActive: "bg-zinc-800 text-white",
+    toggleIdle:   "bg-white text-zinc-500 hover:bg-zinc-50",
+    toggleDivider:"border-zinc-200",
+    navActive:    "bg-zinc-800 text-white",
+    navIdle:      "text-zinc-600 hover:bg-zinc-100",
+    navLabelActive:"text-white",
+    navLabelIdle: "text-zinc-700",
+    navDescActive:"text-zinc-300",
+    navDescIdle:  "text-zinc-400",
+  },
+} as const;
+
 export function GraphViewClient() {
   const [dataset, setDataset] = useState<Dataset>("airports");
   const [view,    setView]    = useState<View>("mapa");
@@ -64,25 +98,29 @@ export function GraphViewClient() {
     setView("mapa");
   }
 
+  const t = THEME[dataset];
+
   return (
     <div className="flex h-dvh w-full overflow-hidden">
       {/* Sidebar */}
-      <nav className="flex w-48 shrink-0 flex-col border-r border-zinc-200 bg-white">
-        <div className="border-b border-zinc-100 px-3 py-3">
-          <p className="mb-2.5 px-1 text-xs font-bold text-zinc-800">Projeto Grafos</p>
-          <div className="flex overflow-hidden rounded-md border border-zinc-200 text-[11px] font-semibold">
+      <nav className={`flex w-48 shrink-0 flex-col border-r transition-colors duration-300 ${t.nav}`}>
+        <div className={`border-b px-3 py-3 transition-colors duration-300 ${t.header}`}>
+          <p className={`mb-2.5 px-1 transition-colors duration-300 ${t.title}`}>
+            {dataset === "airports" ? "✈ PROJ. GRAFOS" : "Projeto Grafos"}
+          </p>
+          <div className={`flex overflow-hidden rounded-md border text-[11px] font-semibold transition-colors duration-300 ${t.toggleWrap}`}>
             <button
               onClick={() => switchDataset("airports")}
-              className={`flex-1 py-1.5 transition-colors ${
-                dataset === "airports" ? "bg-zinc-800 text-white" : "bg-white text-zinc-500 hover:bg-zinc-50"
+              className={`flex-1 py-1.5 transition-colors duration-200 ${
+                dataset === "airports" ? t.toggleActive : t.toggleIdle
               }`}
             >
               Aeroportos
             </button>
             <button
               onClick={() => switchDataset("wikipedia")}
-              className={`flex-1 border-l border-zinc-200 py-1.5 transition-colors ${
-                dataset === "wikipedia" ? "bg-zinc-800 text-white" : "bg-white text-zinc-500 hover:bg-zinc-50"
+              className={`flex-1 border-l py-1.5 transition-colors duration-200 ${t.toggleDivider} ${
+                dataset === "wikipedia" ? t.toggleActive : t.toggleIdle
               }`}
             >
               Wikipedia
@@ -94,20 +132,34 @@ export function GraphViewClient() {
             <li key={v.id}>
               <button
                 onClick={() => setView(v.id)}
-                className={`w-full rounded px-3 py-2.5 text-left transition-colors ${
-                  view === v.id ? "bg-zinc-800 text-white" : "text-zinc-600 hover:bg-zinc-100"
+                className={`w-full rounded px-3 py-2.5 text-left transition-colors duration-200 ${
+                  view === v.id ? t.navActive : t.navIdle
                 }`}
               >
-                <p className={`text-xs font-semibold ${view === v.id ? "text-white" : "text-zinc-700"}`}>
+                <p className={`text-xs font-semibold transition-colors duration-200 ${
+                  view === v.id ? t.navLabelActive : t.navLabelIdle
+                }`}>
                   {v.label}
                 </p>
-                <p className={`mt-0.5 text-[10px] leading-tight ${view === v.id ? "text-zinc-300" : "text-zinc-400"}`}>
+                <p className={`mt-0.5 text-[10px] leading-tight transition-colors duration-200 ${
+                  view === v.id ? t.navDescActive : t.navDescIdle
+                }`}>
                   {v.description[dataset]}
                 </p>
               </button>
             </li>
           ))}
         </ul>
+
+        {/* airport runway indicator */}
+        {dataset === "airports" && (
+          <div className="mt-auto border-t border-amber-500/20 px-4 py-3">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+              <span className="text-[9px] font-mono text-amber-500/70 tracking-widest">LIVE</span>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Main content */}
