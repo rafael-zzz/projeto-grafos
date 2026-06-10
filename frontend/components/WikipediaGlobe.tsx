@@ -78,6 +78,115 @@ function ArticlePanel({ node, onClose }: { node: WikiNode; onClose: () => void }
   );
 }
 
+// ─── Bellman-Ford Path Panel ─────────────────────────────────────────────────
+function BellmanFordPathPanel({
+  pathKeys,
+  nodeMap,
+  seed,
+  onClose
+}: {
+  pathKeys: string[];
+  nodeMap: Map<string, WikiNode>;
+  seed: string;
+  onClose: () => void;
+}) {
+  if (pathKeys.length <= 1) return null;
+
+  let totalCost = 0;
+  const stepScores = new Map<string, number>();
+
+  for (let i = 1; i < pathKeys.length; i++) {
+    const v = pathKeys[i];
+    const targetNode = nodeMap.get(v);
+
+    const vScore = targetNode && (targetNode.attributes as any).distrust_score !== undefined
+      ? Number((targetNode.attributes as any).distrust_score)
+      : 50.0;
+
+    const weight = 1.0 + vScore;
+    totalCost += weight;
+    stepScores.set(v, vScore);
+  }
+
+  return (
+    <motion.div
+      key="bf-path"
+      initial={{ x: -40, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: -40, opacity: 0 }}
+      transition={{ type: "spring", damping: 28, stiffness: 300 }}
+      className="absolute left-4 top-4 bottom-4 z-10 flex w-80 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white/95 shadow-xl backdrop-blur-sm"
+    >
+      <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-4 py-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">Bellman-Ford</p>
+          <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-1.5 mt-0.5">
+            <span className="text-rose-500">⚡</span> Rota Segura
+          </h3>
+        </div>
+        <button onClick={onClose} className="rounded p-1 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600">✕</button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+        <div className="mb-5 border-b border-zinc-100 pb-4">
+          <p className="text-xs font-medium text-zinc-500 mb-1">
+            {pathKeys.length - 1} saltos percorridos.
+          </p>
+          <p className="text-sm font-bold text-zinc-800">
+            Custo Total: <span className={totalCost < 0 ? "text-emerald-600" : totalCost > 10 ? "text-rose-600" : "text-amber-600"}>{totalCost.toFixed(4)}</span>
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {pathKeys.map((key, index) => {
+            const node = nodeMap.get(key);
+            const isStart = index === 0;
+
+            let nodeScore = node && (node.attributes as any).distrust_score !== undefined
+                ? Number((node.attributes as any).distrust_score)
+                : 50.0;
+
+            if (isStart) {
+              return (
+                <div key={`${key}-${index}`} className="p-3 bg-zinc-800 rounded-lg border border-zinc-700 shadow-sm relative overflow-hidden">
+                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
+                   <p className="text-emerald-400 font-bold text-sm mb-1">📍 Origem: {node ? node.attributes.title : seed}</p>
+                   <p className="text-[10px] text-zinc-400 font-mono">Score da página: {nodeScore.toFixed(2)}</p>
+                   <p className="text-[10px] text-zinc-500 italic mt-0.5">* Custo zero (Ponto de partida)</p>
+                </div>
+              );
+            }
+
+            const stepScore = stepScores.get(key) ?? 0;
+            const finalEdgeCost = 1.0 + stepScore;
+
+            const isPenalty = stepScore >= 50.0;
+
+            return (
+              <div key={`${key}-${index}`} className="relative pl-4">
+                 <div className="absolute left-[7px] top-[-12px] bottom-0 w-0.5 bg-zinc-300"></div>
+                 <div className={`p-3 bg-white rounded-lg border ${isPenalty ? 'border-amber-400 shadow-amber-100' : 'border-zinc-200'} shadow-sm relative`}>
+                     <div className={`absolute left-[-13px] top-4 w-2 h-2 rounded-full ${isPenalty ? 'bg-amber-500' : 'bg-zinc-500'} border-2 border-white`}></div>
+                     <p className="text-zinc-800 font-bold text-sm mb-1">
+                        {node ? node.attributes.title : key}
+                        {isPenalty && <span className="ml-2 text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded uppercase font-bold">Penalidade</span>}
+                     </p>
+
+                     <div className="bg-zinc-50 p-2 rounded border border-zinc-100 mt-2">
+                        <p className="text-[10px] text-zinc-500 font-mono mb-1">Matemática do Salto:</p>
+                        <p className="text-xs font-mono text-zinc-700">
+                          1.0 <span className="text-zinc-400">+</span> ({stepScore.toFixed(2)}) <span className="text-zinc-400">=</span> <span className={finalEdgeCost < 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold"}>{finalEdgeCost.toFixed(2)}</span>
+                        </p>
+                     </div>
+                 </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 // ─── Globe ────────────────────────────────────────────────────────────────────
 export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
   const {
@@ -425,10 +534,6 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
     setPlaying(true);
   }
 
-  // ── Loading state ─────────────────────────────────────────────────────────
-  // Note: canvas is always rendered so the RAF loop can start on mount.
-  // A loading overlay is shown on top until data is ready.
-
   const graph        = subgraph;
   const selectedNode = selectedKey && graph
     ? (graph.nodes.find((n) => n.key === selectedKey) ?? null)
@@ -579,6 +684,18 @@ export function WikipediaGlobe({ wikiState }: { wikiState: WikiGraphState }) {
             onWheel={onWheel}
             onClick={onCanvasClick}
           />
+
+          <AnimatePresence>
+            {loaded && algorithm === "bf" && traversalOrder.length > 0 && (
+              <BellmanFordPathPanel
+                pathKeys={traversalOrder}
+                nodeMap={new Map(graph?.nodes.map(n => [n.key, n]) || [])}
+                edges={graph?.edges || []}
+                onClose={() => setBfDest("")}
+              />
+            )}
+          </AnimatePresence>
+
           {!loaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-white">
               <p className="text-sm text-zinc-400">Carregando grafo…</p>
