@@ -26,6 +26,17 @@ make check      # extrai fluxo regional
 
 # ou tudo de uma vez:
 make all
+
+#(WINDOWS)
+.\make.bat parse
+.\make.bat regions
+.\make.bat validate
+.\make.bat edges
+.\make.bat check
+
+# ou tudo de uma vez:
+.\make.bat all
+
 ```
 
 Gera os arquivos em `out/`:
@@ -95,6 +106,10 @@ make wiki
 3. Execute o pipeline:
 ```bash
 make wiki
+
+#(WINDOWS)
+.\make.bat wiki
+
 ```
 
 ### Etapas do pipeline
