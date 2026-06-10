@@ -4,7 +4,7 @@ adjacency_builder.py
 Builds two compact JSON files consumed by the frontend BFS/DFS explorer:
 
   wiki_adjacency.json  { title: [neighbor_title, ...] }
-  wiki_pages.json      { title: { word_count, url, categories } }
+  wiki_pages.json      { title: { word_count, url, categories, distrust_score } }
 
 These are derived from the 2-core-cleaned dataset so every node has degree >= 2.
 """
@@ -35,21 +35,28 @@ def parse_categories(raw):
 print("Reading clean files...")
 pages = pd.read_csv(c.CLEAN_PAGES_CSV)
 links = pd.read_csv(c.CLEAN_LINKS_CSV)
+
+print("Reading calculated top nodes...")
+try:
+    nodes = pd.read_csv(c.NODES_CSV)
+    distrust_dict = dict(zip(nodes['title'], nodes['distrust_score']))
+except FileNotFoundError:
+    distrust_dict = {}
+
 print(f"  {len(pages)} pages, {len(links)} edges")
 
-# Adjacency map: { source_title: [target_title, ...] }
 adj = (
     links.groupby("source_title")["target_title"]
          .apply(list)
          .to_dict()
 )
 
-# Page metadata lookup
 pages_meta = {
     row["title"]: {
         "word_count": int(row["word_count"]),
         "url": row["url"],
         "categories": parse_categories(row.get("categories", "")),
+        "distrust_score": distrust_dict.get(row["title"], 50.0)
     }
     for _, row in pages.iterrows()
 }
