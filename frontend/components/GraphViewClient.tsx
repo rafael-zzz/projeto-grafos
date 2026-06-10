@@ -106,7 +106,7 @@ export function GraphViewClient() {
       <nav className={`flex w-48 shrink-0 flex-col border-r transition-colors duration-300 ${t.nav}`}>
         <div className={`border-b px-3 py-3 transition-colors duration-300 ${t.header}`}>
           <p className={`mb-2.5 px-1 transition-colors duration-300 ${t.title}`}>
-            {dataset === "airports" ? "✈ PROJ. GRAFOS" : "Projeto Grafos"}
+            {dataset === "airports" ? "✈ PROJ. GRAFOS" : "PROJ. GRAFOS 🌐"}
           </p>
           <div className={`flex overflow-hidden rounded-md border text-[11px] font-semibold transition-colors duration-300 ${t.toggleWrap}`}>
             <button

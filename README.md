@@ -126,4 +126,5 @@ make wiki-layout     # posições na esfera de Fibonacci         → data/wikipe
 make wiki-export     # exporta grafo estático                  → frontend/public/wiki_graph.json
 make wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
 
+
 *Nota:* frontend/public/wiki_adjacency.json (~14 MB) está no .gitignore. Após clonar o repositório, rode make wiki-adjacency (ou make wiki completo) para recriá-lo.

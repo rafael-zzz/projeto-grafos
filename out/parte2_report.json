@@ -1,7 +1,7 @@
 {
   "dataset": {
     "name": "Wikipedia static subgraph",
-    "source_file": "frontend\\public\\wiki_graph.json",
+    "source_file": "frontend/public/wiki_graph.json",
     "nodes": 400,
     "edges": 3152,
     "type": "directed_weighted",
@@ -433,7 +433,7 @@
           "8": 9,
           "9": 3
         },
-        "time_ms": 0.3432
+        "time_ms": 0.0485
       },
       {
         "source": "Zand dynasty",
@@ -451,7 +451,7 @@
           "8": 5,
           "9": 10
         },
-        "time_ms": 0.6126
+        "time_ms": 0.0451
       },
       {
         "source": "List of states with limited recognition",
@@ -468,7 +468,7 @@
           "7": 6,
           "8": 7
         },
-        "time_ms": 0.2893
+        "time_ms": 0.0426
       }
     ],
     "dfs": [
@@ -482,7 +482,7 @@
           "forward": 41,
           "tree": 90
         },
-        "time_ms": 0.3112
+        "time_ms": 0.1093
       },
       {
         "source": "Zand dynasty",
@@ -494,7 +494,7 @@
           "forward": 42,
           "tree": 90
         },
-        "time_ms": 1.6675
+        "time_ms": 0.1295
       },
       {
         "source": "List of states with limited recognition",
@@ -506,7 +506,7 @@
           "forward": 35,
           "tree": 90
         },
-        "time_ms": 0.3014
+        "time_ms": 0.0992
       }
     ],
     "dijkstra": [
@@ -519,7 +519,7 @@
           "Parthian Empire",
           "Zand dynasty"
         ],
-        "time_ms": 0.7898
+        "time_ms": 0.2319
       },
       {
         "source": "Zand dynasty",
@@ -532,7 +532,7 @@
           "Indonesia",
           "List of states with limited recognition"
         ],
-        "time_ms": 1.2864
+        "time_ms": 0.521
       },
       {
         "source": "List of states with limited recognition",
@@ -543,7 +543,7 @@
           "List of states with limited recognition",
           "Russian Empire"
         ],
-        "time_ms": 0.5633
+        "time_ms": 0.2096
       },
       {
         "source": "Russian Empire",
@@ -557,7 +557,7 @@
           "Space colonization",
           "Kuiper belt"
         ],
-        "time_ms": 3.5645
+        "time_ms": 0.8264
       },
       {
         "source": "Kuiper belt",
@@ -568,7 +568,7 @@
           "Kuiper belt",
           "Oort cloud"
         ],
-        "time_ms": 0.8266
+        "time_ms": 0.1898
       }
     ],
     "bellman_ford": {
@@ -579,7 +579,7 @@
           "distance": null,
           "path_length": 0,
           "path": [],
-          "time_ms": 83.8801,
+          "time_ms": 27.2005,
           "error": "Graph contains a negative-weight cycle"
         },
         {
@@ -588,7 +588,7 @@
           "distance": null,
           "path_length": 0,
           "path": [],
-          "time_ms": 81.6238,
+          "time_ms": 26.7201,
           "error": "Graph contains a negative-weight cycle"
         },
         {
@@ -597,7 +597,7 @@
           "distance": null,
           "path_length": 0,
           "path": [],
-          "time_ms": 89.6622,
+          "time_ms": 26.3256,
           "error": "Graph contains a negative-weight cycle"
         },
         {
@@ -606,7 +606,7 @@
           "distance": null,
           "path_length": 0,
           "path": [],
-          "time_ms": 84.2884,
+          "time_ms": 26.4825,
           "error": "Graph contains a negative-weight cycle"
         },
         {
@@ -615,7 +615,7 @@
           "distance": null,
           "path_length": 0,
           "path": [],
-          "time_ms": 84.7915,
+          "time_ms": 26.3707,
           "error": "Graph contains a negative-weight cycle"
         }
       ],
@@ -643,30 +643,30 @@
     {
       "algorithm": "BFS",
       "tasks": 3,
-      "mean_ms": 0.415,
-      "median_ms": 0.3432,
-      "max_ms": 0.6126
+      "mean_ms": 0.0454,
+      "median_ms": 0.0451,
+      "max_ms": 0.0485
     },
     {
       "algorithm": "DFS",
       "tasks": 3,
-      "mean_ms": 0.76,
-      "median_ms": 0.3112,
-      "max_ms": 1.6675
+      "mean_ms": 0.1127,
+      "median_ms": 0.1093,
+      "max_ms": 0.1295
     },
     {
       "algorithm": "Dijkstra",
       "tasks": 5,
-      "mean_ms": 1.4061,
-      "median_ms": 0.8266,
-      "max_ms": 3.5645
+      "mean_ms": 0.3957,
+      "median_ms": 0.2319,
+      "max_ms": 0.8264
     },
     {
       "algorithm": "Bellman-Ford",
       "tasks": 5,
-      "mean_ms": 84.8492,
-      "median_ms": 84.2884,
-      "max_ms": 89.6622
+      "mean_ms": 26.6199,
+      "median_ms": 26.4825,
+      "max_ms": 27.2005
     }
   ],
   "visualizations": {
