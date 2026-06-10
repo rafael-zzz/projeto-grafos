@@ -328,7 +328,7 @@ export function BrazilAirportMap() {
     const routeTreeActive = showRouteTree && routeTree !== null && !showBfs && !showDijkstra && !showDfs;
     const displayGraph = routeTreeActive ? routeTree : graph;
     const nodeMap = new Map(displayGraph.nodes.map((n) => [n.key, { ...n.attributes, pos: project(n.attributes.x, n.attributes.y) }]));
-    const globalDensity = displayGraph.nodes.length < 2 ? 0 : (2 * displayGraph.edges.length) / (displayGraph.nodes.length * (displayGraph.nodes.length - 1));
+    const globalDensity = displayGraph.nodes.length < 2 ? 0 : displayGraph.edges.length / (displayGraph.nodes.length * (displayGraph.nodes.length - 1));
     const routeTreeLegend = routeTree?.routes ?? [];
     const { x: tx, y: ty, scale } = tr;
     const dijkstraEdges = !routeTreeActive && dijkstraResult ? getHighlightedEdges(dijkstraResult.prev, dijkstraResult.destKey) : null;

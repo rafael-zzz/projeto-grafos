@@ -13,15 +13,11 @@ from metrics.metrics_exporter import (
 from route_tree import export_route_tree_artifacts
 
 
-def _undirected_edges(graph):
-    seen: set[tuple[str, str]] = set()
+def _directed_edges(graph):
     edges = []
     for icao, node in graph.nodes.items():
         for edge in node.edges:
-            pair = tuple(sorted([icao, edge.destination.icao]))
-            if pair not in seen:
-                seen.add(pair)
-                edges.append(edge)
+            edges.append(edge)
     return edges
 
 
@@ -32,15 +28,11 @@ def _build_regions_data(graph):
 
     regions_data = {}
     for region, node_keys in region_nodes.items():
-        seen: set[tuple[str, str]] = set()
         region_edges = []
         for icao in node_keys:
             for edge in graph.nodes[icao].edges:
                 if edge.destination.icao in node_keys:
-                    pair = tuple(sorted([icao, edge.destination.icao]))
-                    if pair not in seen:
-                        seen.add(pair)
-                        region_edges.append(edge)
+                    region_edges.append(edge)
         regions_data[region] = (list(node_keys), region_edges)
     return regions_data
 
@@ -50,15 +42,11 @@ def _build_ego_data(graph):
     for icao, node in graph.nodes.items():
         neighbors = {edge.destination.icao for edge in node.edges}
         v_ego = {icao} | neighbors
-        seen: set[tuple[str, str]] = set()
         e_ego = []
         for n_icao in v_ego:
             for edge in graph.nodes[n_icao].edges:
                 if edge.destination.icao in v_ego:
-                    pair = tuple(sorted([n_icao, edge.destination.icao]))
-                    if pair not in seen:
-                        seen.add(pair)
-                        e_ego.append(edge)
+                    e_ego.append(edge)
         ego_data[icao] = (len(node.edges), list(v_ego), e_ego)
     return ego_data
 
@@ -67,7 +55,7 @@ def solve():
     graph = load_graph()
 
     all_nodes = list(graph.nodes.values())
-    all_edges = _undirected_edges(graph)
+    all_edges = _directed_edges(graph)
 
     export_graph_json(graph)
     print(f"Metricas globais: {len(all_nodes)} nos, {len(all_edges)} arestas")

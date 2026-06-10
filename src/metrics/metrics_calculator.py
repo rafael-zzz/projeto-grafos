@@ -8,6 +8,6 @@ def calculate_base_metrics(node: list[Any] | set[Any], edges: list[Any] | set[An
     if order < 2:
         density = 0.0
     else:
-        density = (2 * size) / (order * (order - 1))
+        density = size / (order * (order - 1))
         
     return order, size, density

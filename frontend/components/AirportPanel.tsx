@@ -107,15 +107,12 @@ export function AirportPanel({
 
   const neighborKeys = new Set(edges.filter((e) => e.direction === "out").map((e) => e.neighborKey));
   const vEgo = new Set([nodeKey, ...neighborKeys]);
-  const eEgoPairs = new Set<string>();
+  let eEgoSize = 0;
   for (const e of graph.edges) {
-    if (vEgo.has(e.source) && vEgo.has(e.target)) {
-      eEgoPairs.add([e.source, e.target].sort().join("§"));
-    }
+    if (vEgo.has(e.source) && vEgo.has(e.target)) eEgoSize++;
   }
-  const eEgoSize = eEgoPairs.size;
   const egoOrder = vEgo.size;
-  const egoDensity = egoOrder < 2 ? 0 : (2 * eEgoSize) / (egoOrder * (egoOrder - 1));
+  const egoDensity = egoOrder < 2 ? 0 : eEgoSize / (egoOrder * (egoOrder - 1));
 
   const nodeColor = REGION_COLORS[node.attributes.region] ?? "#94a3b8";
   const outCount = edges.filter((e) => e.direction === "out").length;
