@@ -64,9 +64,22 @@ Todos os comandos são executados a partir da **raiz do projeto** com o venv ati
 
 ## Testes
 
+### Backend — Python (35 testes)
+
 ```bash
-pytest tests/
+.venv/bin/python3 -m pytest tests/
 ```
+
+Cobre BFS, DFS, Dijkstra, Bellman-Ford e geração de árvore de percurso.
+
+### Frontend — TypeScript / Jest (40 testes)
+
+```bash
+cd frontend
+npm test
+```
+
+Cobre os mesmos algoritmos implementados em TypeScript: BFS, DFS, Dijkstra e Bellman-Ford.
 
 ## Frontend
 
