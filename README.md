@@ -5,8 +5,10 @@ Modelagem e análise da malha aérea nacional usando grafos. O dataset é compos
 ## Pré-requisitos
 
 ```bash
-# Criar o ambiente virtual e instalar dependências
+# Criar o ambiente virtual e instalar dependências(MAC)
 make venv
+# Criar o ambiente virtual e instalar dependências(WINDOWS)
+.\make.bat venv
 
 # Ou manualmente:
 python3 -m venv .venv
@@ -26,7 +28,6 @@ make check      # extrai fluxo regional
 
 # ou tudo de uma vez:
 make all
-
 #(WINDOWS)
 .\make.bat parse
 .\make.bat regions
@@ -75,14 +76,30 @@ Todos os comandos são executados a partir da **raiz do projeto** com o venv ati
 
 ## Testes
 
+### Backend — Python (35 testes)
+
 ```bash
-pytest tests/
+.venv/bin/python3 -m pytest tests/
 ```
+
+Cobre BFS, DFS, Dijkstra, Bellman-Ford e geração de árvore de percurso.
+
+### Frontend — TypeScript / Jest (40 testes)
+
+```bash
+cd frontend
+npm test
+```
+
+Cobre os mesmos algoritmos implementados em TypeScript: BFS, DFS, Dijkstra e Bellman-Ford.
 
 ## Frontend
 
 ```bash
+#(MAC)
 make frontend
+#(WINDOWS)
+.\make.bat frontend
 ```
 
 Requer que `frontend/public/graph.json` tenha sido gerado via `python3 src/cli.py solve`.
@@ -105,11 +122,7 @@ make wiki
 2. Mova a pasta `wikipedia/` para dentro de `data/`
 3. Execute o pipeline:
 ```bash
-make wiki
-
-#(WINDOWS)
 .\make.bat wiki
-
 ```
 
 ### Etapas do pipeline
@@ -121,6 +134,14 @@ make wiki-layout     # posições na esfera de Fibonacci         → data/wikipe
 make wiki-export     # exporta grafo estático                  → frontend/public/wiki_graph.json
 make wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
 make wiki-viz        # gera relatório e visualizações Parte 2  → out/parte2_*
+
+.\make.bat wiki-clean      # filtra links internos e calcula 2-core → data/wikipedia/clean_*.csv
+.\make.bat wiki-build      # seleciona top-400 vértices por grau    → data/wikipedia/nodes.csv + edges.csv
+.\make.bat wiki-layout     # posições na esfera de Fibonacci         → data/wikipedia/layout.csv
+.\make.bat wiki-export     # exporta grafo estático                  → frontend/public/wiki_graph.json
+.\make.bat wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
+.\make.bat wiki-viz        # gera relatório e visualizações Parte 2  → out/parte2_*
+
 ```
 
 > **Nota:** `frontend/public/wiki_adjacency.json` (~14 MB) está no `.gitignore` por ser um arquivo grande e gerado. Após clonar o repositório, rode `make wiki-adjacency` (ou `make wiki` completo) para recriá-lo. Os demais arquivos (`wiki_graph.json`, `wiki_pages.json`) estão versionados e não precisam ser regerados.
