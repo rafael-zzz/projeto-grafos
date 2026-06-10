@@ -1,0 +1,686 @@
+{
+  "dataset": {
+    "name": "Wikipedia static subgraph",
+    "source_file": "frontend\\public\\wiki_graph.json",
+    "nodes": 400,
+    "edges": 3152,
+    "type": "directed_weighted",
+    "density": 0.01974937343358396,
+    "degree": {
+      "min": 5,
+      "max": 330,
+      "mean": 15.76,
+      "median": 8.0
+    },
+    "utility_nodes_detected": 8,
+    "weight_rule": "target article distrust_score, inherited from src/wikipedia_pipeline/graph_builder.py",
+    "weight": {
+      "min": -19.1615,
+      "max": 37.4329,
+      "has_negative": true,
+      "dijkstra_transform": "Dijkstra uses a non-negative shifted copy of the signed graph."
+    }
+  },
+  "rankings": {
+    "top_raw_hubs": [
+      {
+        "key": "ISBN (identifier)",
+        "title": "ISBN (identifier)",
+        "word_count": 7643,
+        "categories": [
+          "All Wikipedia articles written in British English with Oxford spelling",
+          "International Standard Book Number",
+          "British inventions",
+          "Computer-related introductions in 1970",
+          "Irish inventions"
+        ],
+        "in_degree": 323,
+        "out_degree": 7,
+        "total_degree": 330,
+        "balance": -316,
+        "category_count": 5,
+        "is_utility": true
+      },
+      {
+        "key": "Doi (identifier)",
+        "title": "Doi (identifier)",
+        "word_count": 4888,
+        "categories": [
+          "All Wikipedia articles written in British English with Oxford spelling",
+          "Official website different in Wikidata and Wikipedia",
+          "Academic publishing",
+          "Electronic documents",
+          "Identifiers",
+          "Index (publishing)"
+        ],
+        "in_degree": 312,
+        "out_degree": 3,
+        "total_degree": 315,
+        "balance": -309,
+        "category_count": 6,
+        "is_utility": true
+      },
+      {
+        "key": "S2CID (identifier)",
+        "title": "S2CID (identifier)",
+        "word_count": 1567,
+        "categories": [
+          "Internet properties established in 2015",
+          "Bibliographic databases in computer science",
+          "Scholarly search services",
+          "Applications of artificial intelligence"
+        ],
+        "in_degree": 245,
+        "out_degree": 3,
+        "total_degree": 248,
+        "balance": -242,
+        "category_count": 4,
+        "is_utility": true
+      },
+      {
+        "key": "Bibcode (identifier)",
+        "title": "Bibcode (identifier)",
+        "word_count": 669,
+        "categories": [
+          "Index (publishing)",
+          "Identifiers",
+          "Electronic documents",
+          "Computational astronomy"
+        ],
+        "in_degree": 207,
+        "out_degree": 3,
+        "total_degree": 210,
+        "balance": -204,
+        "category_count": 4,
+        "is_utility": true
+      },
+      {
+        "key": "Parthian Empire",
+        "title": "Parthian Empire",
+        "word_count": 20375,
+        "categories": [
+          "Featured articles",
+          "Coordinates on Wikidata",
+          "Parthian Empire",
+          "Seleucid Empire successor states",
+          "States and territories established in the 3rd century BC",
+          "States and territories disestablished in the 3rd century"
+        ],
+        "in_degree": 142,
+        "out_degree": 8,
+        "total_degree": 150,
+        "balance": -134,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "Zand dynasty",
+        "title": "Zand dynasty",
+        "word_count": 6174,
+        "categories": [
+          "Zand dynasty",
+          "18th century in Iran",
+          "Former monarchies of Iran",
+          "Iranian Muslim dynasties",
+          "Middle Eastern dynasties",
+          "Shia dynasties"
+        ],
+        "in_degree": 127,
+        "out_degree": 8,
+        "total_degree": 135,
+        "balance": -119,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "JSTOR (identifier)",
+        "title": "JSTOR (identifier)",
+        "word_count": 3085,
+        "categories": [
+          "All Wikipedia articles written in American English",
+          "All Wikipedia articles in need of updating",
+          "1995 establishments in New York City",
+          "Academic publishing",
+          "American digital libraries",
+          "Andrew W. Mellon Foundation"
+        ],
+        "in_degree": 113,
+        "out_degree": 8,
+        "total_degree": 121,
+        "balance": -105,
+        "category_count": 6,
+        "is_utility": true
+      },
+      {
+        "key": "ArXiv (identifier)",
+        "title": "ArXiv (identifier)",
+        "word_count": 2934,
+        "categories": [
+          "1991 establishments in New Mexico",
+          "American digital libraries",
+          "Cornell University",
+          "Eprint archives",
+          "Internet properties established in 1991",
+          "Open science"
+        ],
+        "in_degree": 115,
+        "out_degree": 5,
+        "total_degree": 120,
+        "balance": -110,
+        "category_count": 6,
+        "is_utility": true
+      },
+      {
+        "key": "Hdl (identifier)",
+        "title": "Hdl (identifier)",
+        "word_count": 2926,
+        "categories": [
+          "Internet protocols",
+          "Identifiers",
+          "Internet properties established in 1994"
+        ],
+        "in_degree": 119,
+        "out_degree": 1,
+        "total_degree": 120,
+        "balance": -118,
+        "category_count": 3,
+        "is_utility": true
+      },
+      {
+        "key": "List of states with limited recognition",
+        "title": "List of states with limited recognition",
+        "word_count": 8910,
+        "categories": [
+          "Module:Interwiki extra: additional interwiki links",
+          "States with limited recognition",
+          "Lists of countries"
+        ],
+        "in_degree": 100,
+        "out_degree": 8,
+        "total_degree": 108,
+        "balance": -92,
+        "category_count": 3,
+        "is_utility": false
+      }
+    ],
+    "top_thematic_hubs": [
+      {
+        "key": "Parthian Empire",
+        "title": "Parthian Empire",
+        "word_count": 20375,
+        "categories": [
+          "Featured articles",
+          "Coordinates on Wikidata",
+          "Parthian Empire",
+          "Seleucid Empire successor states",
+          "States and territories established in the 3rd century BC",
+          "States and territories disestablished in the 3rd century"
+        ],
+        "in_degree": 142,
+        "out_degree": 8,
+        "total_degree": 150,
+        "balance": -134,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "Zand dynasty",
+        "title": "Zand dynasty",
+        "word_count": 6174,
+        "categories": [
+          "Zand dynasty",
+          "18th century in Iran",
+          "Former monarchies of Iran",
+          "Iranian Muslim dynasties",
+          "Middle Eastern dynasties",
+          "Shia dynasties"
+        ],
+        "in_degree": 127,
+        "out_degree": 8,
+        "total_degree": 135,
+        "balance": -119,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "List of states with limited recognition",
+        "title": "List of states with limited recognition",
+        "word_count": 8910,
+        "categories": [
+          "Module:Interwiki extra: additional interwiki links",
+          "States with limited recognition",
+          "Lists of countries"
+        ],
+        "in_degree": 100,
+        "out_degree": 8,
+        "total_degree": 108,
+        "balance": -92,
+        "category_count": 3,
+        "is_utility": false
+      },
+      {
+        "key": "Russian Empire",
+        "title": "Russian Empire",
+        "word_count": 25496,
+        "categories": [
+          "All Wikipedia articles written in American English",
+          "1721 establishments in Russia",
+          "1917 disestablishments in Russia",
+          "Former Christian states",
+          "Countries and territories where Russian is an official language",
+          "Former monarchies of Europe"
+        ],
+        "in_degree": 97,
+        "out_degree": 8,
+        "total_degree": 105,
+        "balance": -89,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "Kuiper belt",
+        "title": "Kuiper belt",
+        "word_count": 13997,
+        "categories": [
+          "Featured articles",
+          "Kuiper belt objects",
+          "Trans-Neptunian region",
+          "Astronomical objects discovered in 1992",
+          "Extraterrestrial water",
+          "Solar System"
+        ],
+        "in_degree": 92,
+        "out_degree": 8,
+        "total_degree": 100,
+        "balance": -84,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "Oort cloud",
+        "title": "Oort cloud",
+        "word_count": 8283,
+        "categories": [
+          "Featured articles",
+          "Spoken articles",
+          "Oort cloud",
+          "Astronomical hypotheses",
+          "Circumstellar disks",
+          "Comets"
+        ],
+        "in_degree": 87,
+        "out_degree": 8,
+        "total_degree": 95,
+        "balance": -79,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "Administrative divisions of Azerbaijan",
+        "title": "Administrative divisions of Azerbaijan",
+        "word_count": 2123,
+        "categories": [
+          "Subdivisions of Azerbaijan",
+          "Lists of administrative divisions",
+          "Administrative divisions in Asia",
+          "Administrative divisions in Europe",
+          "Azerbaijan geography-related lists"
+        ],
+        "in_degree": 81,
+        "out_degree": 8,
+        "total_degree": 89,
+        "balance": -73,
+        "category_count": 5,
+        "is_utility": false
+      },
+      {
+        "key": "List of sovereign states",
+        "title": "List of sovereign states",
+        "word_count": 11081,
+        "categories": [
+          "All Wikipedia articles written in British English",
+          "Lists of countries"
+        ],
+        "in_degree": 80,
+        "out_degree": 8,
+        "total_degree": 88,
+        "balance": -72,
+        "category_count": 2,
+        "is_utility": false
+      },
+      {
+        "key": "Shulaveri–Shomu culture",
+        "title": "Shulaveri–Shomu culture",
+        "word_count": 4694,
+        "categories": [
+          "Neolithic cultures of Asia",
+          "Chalcolithic cultures of Asia",
+          "Archaeological cultures of West Asia",
+          "Archaeological cultures in Armenia",
+          "Archaeological cultures in Azerbaijan",
+          "Archaeological cultures in Georgia (country)"
+        ],
+        "in_degree": 78,
+        "out_degree": 8,
+        "total_degree": 86,
+        "balance": -70,
+        "category_count": 6,
+        "is_utility": false
+      },
+      {
+        "key": "Roman Empire",
+        "title": "Roman Empire",
+        "word_count": 32707,
+        "categories": [
+          "All Wikipedia articles written in British English with Oxford spelling",
+          "Roman Empire",
+          "Ancient Italian history",
+          "Italian states",
+          "Former countries in Europe",
+          "Former countries in Africa"
+        ],
+        "in_degree": 61,
+        "out_degree": 8,
+        "total_degree": 69,
+        "balance": -53,
+        "category_count": 6,
+        "is_utility": false
+      }
+    ]
+  },
+  "algorithm_runs": {
+    "sources": [
+      "Parthian Empire",
+      "Zand dynasty",
+      "List of states with limited recognition"
+    ],
+    "pairs": [
+      {
+        "source": "Parthian Empire",
+        "target": "Zand dynasty"
+      },
+      {
+        "source": "Zand dynasty",
+        "target": "List of states with limited recognition"
+      },
+      {
+        "source": "List of states with limited recognition",
+        "target": "Russian Empire"
+      },
+      {
+        "source": "Russian Empire",
+        "target": "Kuiper belt"
+      },
+      {
+        "source": "Kuiper belt",
+        "target": "Oort cloud"
+      }
+    ],
+    "bfs": [
+      {
+        "source": "Parthian Empire",
+        "visited": 91,
+        "max_level": 9,
+        "level_counts": {
+          "0": 1,
+          "1": 8,
+          "2": 13,
+          "3": 11,
+          "4": 13,
+          "5": 16,
+          "6": 9,
+          "7": 8,
+          "8": 9,
+          "9": 3
+        },
+        "time_ms": 0.3432
+      },
+      {
+        "source": "Zand dynasty",
+        "visited": 91,
+        "max_level": 9,
+        "level_counts": {
+          "0": 1,
+          "1": 8,
+          "2": 13,
+          "3": 9,
+          "4": 17,
+          "5": 12,
+          "6": 7,
+          "7": 9,
+          "8": 5,
+          "9": 10
+        },
+        "time_ms": 0.6126
+      },
+      {
+        "source": "List of states with limited recognition",
+        "visited": 91,
+        "max_level": 8,
+        "level_counts": {
+          "0": 1,
+          "1": 8,
+          "2": 18,
+          "3": 13,
+          "4": 12,
+          "5": 11,
+          "6": 15,
+          "7": 6,
+          "8": 7
+        },
+        "time_ms": 0.2893
+      }
+    ],
+    "dfs": [
+      {
+        "source": "Parthian Empire",
+        "visited": 91,
+        "has_cycle": true,
+        "edge_type_counts": {
+          "back": 326,
+          "cross": 230,
+          "forward": 41,
+          "tree": 90
+        },
+        "time_ms": 0.3112
+      },
+      {
+        "source": "Zand dynasty",
+        "visited": 91,
+        "has_cycle": true,
+        "edge_type_counts": {
+          "back": 290,
+          "cross": 265,
+          "forward": 42,
+          "tree": 90
+        },
+        "time_ms": 1.6675
+      },
+      {
+        "source": "List of states with limited recognition",
+        "visited": 91,
+        "has_cycle": true,
+        "edge_type_counts": {
+          "back": 306,
+          "cross": 256,
+          "forward": 35,
+          "tree": 90
+        },
+        "time_ms": 0.3014
+      }
+    ],
+    "dijkstra": [
+      {
+        "source": "Parthian Empire",
+        "target": "Zand dynasty",
+        "distance": 4.9257,
+        "path_length": 2,
+        "path": [
+          "Parthian Empire",
+          "Zand dynasty"
+        ],
+        "time_ms": 0.7898
+      },
+      {
+        "source": "Zand dynasty",
+        "target": "List of states with limited recognition",
+        "distance": 14.2589,
+        "path_length": 4,
+        "path": [
+          "Zand dynasty",
+          "ISBN (identifier)",
+          "Indonesia",
+          "List of states with limited recognition"
+        ],
+        "time_ms": 1.2864
+      },
+      {
+        "source": "List of states with limited recognition",
+        "target": "Russian Empire",
+        "distance": 5.1706,
+        "path_length": 2,
+        "path": [
+          "List of states with limited recognition",
+          "Russian Empire"
+        ],
+        "time_ms": 0.5633
+      },
+      {
+        "source": "Russian Empire",
+        "target": "Kuiper belt",
+        "distance": 23.9621,
+        "path_length": 5,
+        "path": [
+          "Russian Empire",
+          "Republic of Ireland",
+          "List of states with limited recognition",
+          "Space colonization",
+          "Kuiper belt"
+        ],
+        "time_ms": 3.5645
+      },
+      {
+        "source": "Kuiper belt",
+        "target": "Oort cloud",
+        "distance": 3.1648,
+        "path_length": 2,
+        "path": [
+          "Kuiper belt",
+          "Oort cloud"
+        ],
+        "time_ms": 0.8266
+      }
+    ],
+    "bellman_ford": {
+      "signed_graph": [
+        {
+          "source": "Parthian Empire",
+          "target": "Zand dynasty",
+          "distance": null,
+          "path_length": 0,
+          "path": [],
+          "time_ms": 83.8801,
+          "error": "Graph contains a negative-weight cycle"
+        },
+        {
+          "source": "Zand dynasty",
+          "target": "List of states with limited recognition",
+          "distance": null,
+          "path_length": 0,
+          "path": [],
+          "time_ms": 81.6238,
+          "error": "Graph contains a negative-weight cycle"
+        },
+        {
+          "source": "List of states with limited recognition",
+          "target": "Russian Empire",
+          "distance": null,
+          "path_length": 0,
+          "path": [],
+          "time_ms": 89.6622,
+          "error": "Graph contains a negative-weight cycle"
+        },
+        {
+          "source": "Russian Empire",
+          "target": "Kuiper belt",
+          "distance": null,
+          "path_length": 0,
+          "path": [],
+          "time_ms": 84.2884,
+          "error": "Graph contains a negative-weight cycle"
+        },
+        {
+          "source": "Kuiper belt",
+          "target": "Oort cloud",
+          "distance": null,
+          "path_length": 0,
+          "path": [],
+          "time_ms": 84.7915,
+          "error": "Graph contains a negative-weight cycle"
+        }
+      ],
+      "negative_cases": {
+        "negative_weight_without_negative_cycle": {
+          "source": "A",
+          "target": "D",
+          "distance": 1,
+          "path": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ]
+        },
+        "negative_cycle": {
+          "detected": true,
+          "error": "Graph contains a negative-weight cycle"
+        },
+        "dijkstra_negative_weight_rejection": true
+      }
+    }
+  },
+  "performance_summary": [
+    {
+      "algorithm": "BFS",
+      "tasks": 3,
+      "mean_ms": 0.415,
+      "median_ms": 0.3432,
+      "max_ms": 0.6126
+    },
+    {
+      "algorithm": "DFS",
+      "tasks": 3,
+      "mean_ms": 0.76,
+      "median_ms": 0.3112,
+      "max_ms": 1.6675
+    },
+    {
+      "algorithm": "Dijkstra",
+      "tasks": 5,
+      "mean_ms": 1.4061,
+      "median_ms": 0.8266,
+      "max_ms": 3.5645
+    },
+    {
+      "algorithm": "Bellman-Ford",
+      "tasks": 5,
+      "mean_ms": 84.8492,
+      "median_ms": 84.2884,
+      "max_ms": 89.6622
+    }
+  ],
+  "visualizations": {
+    "degree_distribution": "out/parte2_distribuicao_graus.png",
+    "hub_comparison": "out/parte2_hubs_brutos_vs_tematicos.png",
+    "algorithm_times": "out/parte2_tempos_algoritmos.png",
+    "bfs_levels": "out/parte2_bfs_camadas.png",
+    "distance_heatmap": "out/parte2_heatmap_distancias.png",
+    "report": "out/parte2_report.json",
+    "notes": "out/parte2_notas_analiticas.md"
+  },
+  "insights": [
+    "Raw hubs are dominated by utility/reference pages; thematic filtering gives a better narrative ranking.",
+    "BFS exposes reachability by layers, while DFS is better for cycle and edge-classification behavior.",
+    "Dijkstra is the practical choice for non-negative weighted paths; Bellman-Ford is slower but necessary for negative weights and negative-cycle detection."
+  ]
+}

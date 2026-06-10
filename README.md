@@ -105,6 +105,16 @@ make wiki-build      # seleciona top-400 vértices por grau    → data/wikipedi
 make wiki-layout     # posições na esfera de Fibonacci         → data/wikipedia/layout.csv
 make wiki-export     # exporta grafo estático                  → frontend/public/wiki_graph.json
 make wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
+make wiki-viz        # gera relatório e visualizações Parte 2  → out/parte2_*
 ```
 
-> **Nota:** `frontend/public/wiki_adjacency.json` (~14 MB) está no `.gitignore`. Após clonar o repositório, rode `make wiki-adjacency` (ou `make wiki` completo) para recriá-lo.
+> **Nota:** `frontend/public/wiki_adjacency.json` (~14 MB) está no `.gitignore` por ser um arquivo grande e gerado. Após clonar o repositório, rode `make wiki-adjacency` (ou `make wiki` completo) para recriá-lo. Os demais arquivos (`wiki_graph.json`, `wiki_pages.json`) estão versionados e não precisam ser regerados.
+
+Saídas analíticas da Parte 2 geradas em `out/`:
+- `parte2_report.json` — resumo do dataset, execuções de BFS/DFS/Dijkstra/Bellman-Ford e tempos.
+- `parte2_distribuicao_graus.png` — distribuição de graus do subgrafo Wikipedia.
+- `parte2_hubs_brutos_vs_tematicos.png` — comparação entre hubs brutos e hubs filtrados.
+- `parte2_tempos_algoritmos.png` — comparação visual de desempenho dos algoritmos.
+- `parte2_bfs_camadas.png` — camadas BFS a partir de uma fonte temática.
+- `parte2_heatmap_distancias.png` — custos de Dijkstra entre hubs temáticos.
+- `parte2_notas_analiticas.md` — notas interpretativas para apoiar o PDF/apresentação.

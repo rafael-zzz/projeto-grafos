@@ -26,7 +26,7 @@ else
 endif
 
 .PHONY: venv parse regions validate edges check solve all \
-        wiki-unzip wiki-clean wiki-build wiki-layout wiki-export wiki-adjacency wiki \
+        wiki-unzip wiki-clean wiki-build wiki-layout wiki-export wiki-adjacency wiki-viz wiki \
         frontend
 
 venv:
@@ -75,6 +75,9 @@ wiki-export:
 wiki-adjacency:
 	$(VENV_PYTHON) $(WIKI)/adjacency_builder.py
 
+wiki-viz: venv
+	$(VENV_PYTHON) $(WIKI)/visualization.py
+
 wiki:
 	[ -f $(WIKI_DIR)/pages_export.csv ] || $(MAKE) wiki-unzip
 	@if [ ! -f $(VENV_PYTHON) ]; then \
@@ -86,6 +89,7 @@ wiki:
 	$(VENV_PYTHON) $(WIKI)/layout_builder.py
 	$(VENV_PYTHON) $(WIKI)/graph_exporter.py
 	$(VENV_PYTHON) $(WIKI)/adjacency_builder.py
+	$(VENV_PYTHON) $(WIKI)/visualization.py
 
 frontend:
 	$(FRONTEND)
