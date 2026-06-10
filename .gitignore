@@ -44,6 +44,14 @@ claude/
 out/*
 !out/.gitkeep
 
+# Intermediários gerados pelo pipeline de aeroportos — rode make all para recriar
+data/airports/clean.csv
+data/airports/airports.csv
+data/airports/edges.csv
+
+# Grafo gerado — rode make solve ou python3 src/cli.py solve para recriar
+frontend/public/graph.json
+
 # Projeto
 data/wikipedia/
 
