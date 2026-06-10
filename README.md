@@ -5,6 +5,11 @@ Modelagem e análise da malha aérea nacional usando grafos. O dataset é compos
 ## Pré-requisitos
 
 ```bash
+# Criar o ambiente virtual e instalar dependências
+make venv
+
+# Ou manualmente:
+python3 -m venv .venv
 pip install -r requirements.txt
 ```
 
@@ -34,27 +39,27 @@ Gera os arquivos em `out/`:
 
 ## CLI
 
-Todos os comandos são executados a partir da **raiz do projeto**:
+Todos os comandos são executados a partir da **raiz do projeto** com o venv ativo:
 
 ```bash
 # Gerar todos os arquivos de saída (métricas, graph.json, etc.)
-python3 src/cli.py solve
+.venv/bin/python3 src/cli.py solve
 
 # BFS a partir de um aeroporto
-python3 src/cli.py bfs SBGR
+.venv/bin/python3 src/cli.py bfs SBGR
 
 # DFS (origem opcional; sem argumento percorre todo o grafo)
-python3 src/cli.py dfs SBBR
-python3 src/cli.py dfs
+.venv/bin/python3 src/cli.py dfs SBBR
+.venv/bin/python3 src/cli.py dfs
 
 # Menor caminho — Dijkstra (pesos não-negativos)
-python3 src/cli.py dijkstra SBGR SBRF
+.venv/bin/python3 src/cli.py dijkstra SBGR SBRF
 
 # Menor caminho — Bellman-Ford (suporta pesos negativos)
-python3 src/cli.py bellman-ford SBGR SBRF
+.venv/bin/python3 src/cli.py bellman-ford SBGR SBRF
 
 # Calcular rotas em lote a partir de data/airports/rotas.csv → out/distancias_rotas.csv
-python3 src/cli.py routes
+.venv/bin/python3 src/cli.py routes
 ```
 
 ## Testes

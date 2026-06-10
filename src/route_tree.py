@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Iterable
 
@@ -88,10 +89,15 @@ def build_route_tree(
 
 def export_route_tree_artifacts(
     graph: Graph,
-    png_path: str = "../out/arvore_percurso.png",
-    html_path: str = "../out/arvore_percurso.html",
+    png_path: str = "",
+    html_path: str = "",
     route_specs: Iterable[tuple[str, str, str, str]] = DEFAULT_ROUTE_SPECS,
 ) -> None:
+    _root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if not png_path:
+        png_path  = os.path.join(_root, "out", "arvore_percurso.png")
+    if not html_path:
+        html_path = os.path.join(_root, "out", "arvore_percurso.html")
     tree = build_route_tree(graph, route_specs)
     nodes: dict[str, dict[str, object]] = tree["nodes"]
     segments: list[dict[str, object]] = tree["segments"]

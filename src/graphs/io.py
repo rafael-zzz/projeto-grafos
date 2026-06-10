@@ -4,8 +4,9 @@ import os
 import pandas as pd
 from .graph import Graph
 
-AIRPORTS_CSV = "../data/airports/airports.csv"
-EDGES_CSV = "../data/airports/edges.csv"
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+AIRPORTS_CSV = os.path.join(_ROOT, "data", "airports", "airports.csv")
+EDGES_CSV    = os.path.join(_ROOT, "data", "airports", "edges.csv")
 
 REGION_COLORS: dict[str, str] = {
     "Norte":        "#0d9488",
@@ -66,8 +67,6 @@ def load_graph(
     airports_path: str = AIRPORTS_CSV,
     adjacencies_path: str = EDGES_CSV,
 ) -> Graph:
-    from graph_loader import build_graph_from_csv
-
     if not os.path.exists(airports_path):
         raise FileNotFoundError(f"Airports file not found: {airports_path}")
     if not os.path.exists(adjacencies_path):
@@ -83,7 +82,10 @@ def export_graph_json(
     output_paths: list[str] | None = None,
 ) -> None:
     if output_paths is None:
-        output_paths = ["../frontend/public/graph.json", "../out/graph.json"]
+        output_paths = [
+            os.path.join(_ROOT, "frontend", "public", "graph.json"),
+            os.path.join(_ROOT, "out", "graph.json"),
+        ]
 
     degrees = {icao: len(node.edges) for icao, node in graph.nodes.items()}
 
@@ -141,7 +143,9 @@ def export_graph_json(
         print(f"Exported {len(nodes)} nodes and {len(edges)} edges → {path}")
 
 
-def load_routes(filepath: str = "../data/airports/rotas.csv") -> list[tuple[str, str]]:
+def load_routes(filepath: str = "") -> list[tuple[str, str]]:
+    if not filepath:
+        filepath = os.path.join(_ROOT, "data", "airports", "rotas.csv")
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Routes file not found: {filepath}")
 
@@ -155,7 +159,9 @@ def load_routes(filepath: str = "../data/airports/rotas.csv") -> list[tuple[str,
     return routes
 
 
-def export_routes(results: list[dict[str, str]], filepath: str = "../out/distancias_rotas.csv") -> None:
+def export_routes(results: list[dict[str, str]], filepath: str = "") -> None:
+    if not filepath:
+        filepath = os.path.join(_ROOT, "out", "distancias_rotas.csv")
     dirname = os.path.dirname(filepath)
     if dirname:
         os.makedirs(dirname, exist_ok=True)

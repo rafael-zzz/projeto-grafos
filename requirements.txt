@@ -1,4 +1,5 @@
-pytest
-matplotlib
-pandas
-airportsdata
+airportsdata==20260315
+matplotlib==3.10.9
+numpy==2.4.6
+pandas==3.0.3
+pytest==9.0.3

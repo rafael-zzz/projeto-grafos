@@ -25,27 +25,31 @@ else
     FRONTEND    := cd frontend && ([ -d node_modules ] || npm i) && npm run dev
 endif
 
-.PHONY: parse regions validate edges check solve all \
+.PHONY: venv parse regions validate edges check solve all \
         wiki-unzip wiki-clean wiki-build wiki-layout wiki-export wiki-adjacency wiki \
         frontend
 
-parse:
-	$(PYTHON) $(SCRIPTS)/dataset_cleaning.py
+venv:
+	$(VENV_CREATE)
+	$(VENV_PIP) install -r requirements.txt
 
-regions:
-	$(PYTHON) $(SCRIPTS)/airports_builder.py
+parse: venv
+	$(VENV_PYTHON) $(SCRIPTS)/dataset_cleaning.py
 
-validate:
-	$(PYTHON) $(SCRIPTS)/assist.py
+regions: venv
+	$(VENV_PYTHON) $(SCRIPTS)/airports_builder.py
 
-edges:
-	$(PYTHON) $(SCRIPTS)/edge_list_builder.py
+validate: venv
+	$(VENV_PYTHON) $(SCRIPTS)/assist.py
 
-check:
-	$(PYTHON) $(SCRIPTS)/insight_builder.py
+edges: venv
+	$(VENV_PYTHON) $(SCRIPTS)/edge_list_builder.py
 
-solve:
-	$(PYTHON) src/solve.py
+check: venv
+	$(VENV_PYTHON) $(SCRIPTS)/insight_builder.py
+
+solve: venv
+	$(VENV_PYTHON) src/solve.py
 
 all: parse regions validate edges check solve
 
