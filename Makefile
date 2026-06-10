@@ -30,8 +30,10 @@ endif
         frontend
 
 venv:
-	$(VENV_CREATE)
-	$(VENV_PIP) install -r requirements.txt
+	@if [ ! -f $(VENV_PYTHON) ]; then \
+		$(VENV_CREATE); \
+		$(VENV_PIP) install -r requirements.txt; \
+	fi
 
 parse: venv
 	$(VENV_PYTHON) $(SCRIPTS)/dataset_cleaning.py
@@ -75,8 +77,10 @@ wiki-adjacency:
 
 wiki:
 	[ -f $(WIKI_DIR)/pages_export.csv ] || $(MAKE) wiki-unzip
-	$(VENV_CREATE)
-	$(VENV_PIP) install -r requirements.txt
+	@if [ ! -f $(VENV_PYTHON) ]; then \
+		$(VENV_CREATE); \
+		$(VENV_PIP) install -r requirements.txt; \
+	fi
 	$(VENV_PYTHON) $(WIKI)/dataset_cleaning.py
 	$(VENV_PYTHON) $(WIKI)/graph_builder.py
 	$(VENV_PYTHON) $(WIKI)/layout_builder.py
