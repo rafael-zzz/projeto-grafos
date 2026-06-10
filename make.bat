@@ -28,6 +28,7 @@ if /I "%~1"=="wiki-build" goto wiki_build
 if /I "%~1"=="wiki-layout" goto wiki_layout
 if /I "%~1"=="wiki-export" goto wiki_export
 if /I "%~1"=="wiki-adjacency" goto wiki_adjacency
+if /I "%~1"=="wiki-viz" goto wiki_viz
 if /I "%~1"=="wiki" goto wiki
 if /I "%~1"=="frontend" goto frontend
 
@@ -101,72 +102,4 @@ echo Limpando dataset da Wikipedia...
 goto :eof
 
 :wiki_build
-call :venv
-echo Construindo nodes e edges do top 400...
-"%VENV_PYTHON%" %WIKI%\graph_builder.py
-goto :eof
-
-:wiki_layout
-call :venv
-echo Calculando posicoes na esfera 3D...
-"%VENV_PYTHON%" %WIKI%\layout_builder.py
-goto :eof
-
-:wiki_export
-call :venv
-echo Exportando wiki_graph.json...
-"%VENV_PYTHON%" %WIKI%\graph_exporter.py
-goto :eof
-
-:wiki_adjacency
-call :venv
-echo Construindo adjacencias e scores (wiki_pages.json)...
-"%VENV_PYTHON%" %WIKI%\adjacency_builder.py
-goto :eof
-
-:wiki
-echo Iniciando pipeline completo da Wikipedia...
-call :wiki_clean
-call :wiki_build
-call :wiki_layout
-call :wiki_export
-call :wiki_adjacency
-echo.
-echo === Pipeline da Wikipedia Concluido! ===
-goto :eof
-
-:frontend
-echo Iniciando Frontend Next.js...
-cd frontend
-if not exist "node_modules\" (
-    echo Instalando dependencias do frontend...
-    npm install
-)
-npm run dev
-goto :eof
-
-:help
-echo.
-echo =============== MENU DE COMANDOS =================
-echo Uso: .\make.bat [comando]
-echo.
-echo Comandos Aeroportos:
-echo   .\make.bat parse      - limpa o dataset bruto
-echo   .\make.bat regions    - constroi os vertices
-echo   .\make.bat validate   - verifica cobertura
-echo   .\make.bat edges      - constroi as arestas
-echo   .\make.bat check      - extrai fluxo regional
-echo   .\make.bat solve      - gera JSONs finais
-echo   .\make.bat all        - Roda todo o pipeline
-echo.
-echo Comandos Wikipedia:
-echo   .\make.bat wiki-clean - limpa links e calcula core
-echo   .\make.bat wiki-build - seleciona top 400
-echo   .\make.bat wiki-layout- calcula 3D positions
-echo   .\make.bat wiki-export- exporta json 3D
-echo   .\make.bat wiki-adjacency - exporta scores para UI
-echo   .\make.bat wiki       - Roda todo o pipeline
-echo.
-echo Frontend:
-echo   .\make.bat frontend   - Inicia o Next.js
-echo ==================================================
+call
