@@ -2,156 +2,142 @@
 
 Modelagem e análise da malha aérea nacional usando grafos. O dataset é composto por voos domésticos de janeiro de 2026 (fonte: ANAC). Cada aeroporto é um vértice e cada rota operada é uma aresta ponderada pelo inverso do log da frequência de voos.
 
-## Pré-requisitos
+---
 
-```bash
-# Criar o ambiente virtual e instalar dependências(MAC)
-make venv
-# Criar o ambiente virtual e instalar dependências(WINDOWS)
-.\make.bat venv
+## 1. Pré-requisitos
 
-# Ou manualmente:
-python3 -m venv .venv
-pip install -r requirements.txt
-```
+Crie o ambiente virtual e instale as dependências antes de qualquer outro passo.
 
-## Pipeline de dados — Aeroportos
+| Mac / Linux | Windows |
+|---|---|
+| `make venv` | `.\make.bat venv` |
 
-Os arquivos de saída são gerados a partir do dataset bruto (`data/airports/aeroportos_data.csv`). Execute os alvos do Makefile **na ordem**:
+> O target `venv` só cria o ambiente se ele ainda não existir. Rodar novamente é seguro.
 
-```bash
-make parse      # limpa o dataset bruto
-make regions    # constrói os vértices
-make validate   # verifica cobertura de aeroportos
-make edges      # constrói as arestas
-make check      # extrai fluxo regional
+---
 
-# ou tudo de uma vez:
-make all
-#(WINDOWS)
-.\make.bat parse
-.\make.bat regions
-.\make.bat validate
-.\make.bat edges
-.\make.bat check
+## 2. Pipeline de Aeroportos
 
-# ou tudo de uma vez:
-.\make.bat all
+Gera o grafo a partir do dataset bruto da ANAC (`data/airports/aeroportos_data.csv`).
 
-```
+**Tudo de uma vez (recomendado):**
 
-Gera os arquivos em `out/`:
-- `global.json` — ordem, tamanho, densidade do grafo
-- `regioes.json` — mesmas métricas por região
+| Mac / Linux | Windows |
+|---|---|
+| `make all` | `.\make.bat all` |
+
+**Etapas individuais, na ordem:**
+
+| Etapa | Mac / Linux | Windows | O que faz |
+|---|---|---|---|
+| 1 | `make parse` | `.\make.bat parse` | Limpa o dataset bruto |
+| 2 | `make regions` | `.\make.bat regions` | Constrói os vértices (aeroportos + regiões) |
+| 3 | `make validate` | `.\make.bat validate` | Verifica cobertura de aeroportos |
+| 4 | `make edges` | `.\make.bat edges` | Constrói as arestas com pesos |
+| 5 | `make check` | `.\make.bat check` | Extrai fluxo regional |
+| 6 | `make solve` | `.\make.bat solve` | Gera métricas e exporta `graph.json` |
+
+**Arquivos gerados em `out/` e `frontend/public/`:**
+
+- `graph.json` — grafo completo (exportado também para `frontend/public/`)
+- `global.json` — ordem, tamanho e densidade do grafo
+- `regioes.json` — métricas por região
 - `graus.csv` — grau de cada aeroporto
 - `ego_aeroportos.csv` — métricas de rede ego por aeroporto
-- `graph.json` — exportado também para `frontend/public/`
 - `arvore_percurso.png` / `arvore_percurso.html` — árvore de percurso dos caminhos obrigatórios
-- `data/airports/adjacencias_aeroportos.csv` — arestas com justificativa (gerado por `src/airports_pipeline/adjacencias_builder.py`)
+- `data/airports/adjacencias_aeroportos.csv` — arestas com justificativa
 
-## CLI
+---
 
-Todos os comandos são executados a partir da **raiz do projeto** com o venv ativo:
+## 3. CLI — Algoritmos
 
-```bash
-# Gerar todos os arquivos de saída (métricas, graph.json, etc.)
-.venv/bin/python3 src/cli.py solve
+Executar da **raiz do projeto** com o venv já criado.
 
-# BFS a partir de um aeroporto
-.venv/bin/python3 src/cli.py bfs SBGR
+| Comando | Mac / Linux | Windows |
+|---|---|---|
+| Gerar todos os outputs | `.venv/bin/python3 src/cli.py solve` | `.venv\Scripts\python src\cli.py solve` |
+| BFS a partir de um aeroporto | `.venv/bin/python3 src/cli.py bfs SBGR` | `.venv\Scripts\python src\cli.py bfs SBGR` |
+| DFS a partir de um aeroporto | `.venv/bin/python3 src/cli.py dfs SBBR` | `.venv\Scripts\python src\cli.py dfs SBBR` |
+| DFS em todo o grafo | `.venv/bin/python3 src/cli.py dfs` | `.venv\Scripts\python src\cli.py dfs` |
+| Dijkstra entre dois aeroportos | `.venv/bin/python3 src/cli.py dijkstra SBGR SBRF` | `.venv\Scripts\python src\cli.py dijkstra SBGR SBRF` |
+| Bellman-Ford entre dois aeroportos | `.venv/bin/python3 src/cli.py bellman-ford SBGR SBRF` | `.venv\Scripts\python src\cli.py bellman-ford SBGR SBRF` |
+| Calcular rotas em lote | `.venv/bin/python3 src/cli.py routes` | `.venv\Scripts\python src\cli.py routes` |
 
-# DFS (origem opcional; sem argumento percorre todo o grafo)
-.venv/bin/python3 src/cli.py dfs SBBR
-.venv/bin/python3 src/cli.py dfs
+> `routes` lê `data/airports/rotas.csv` e exporta resultados em `out/distancias_rotas.csv`.
 
-# Menor caminho — Dijkstra (pesos não-negativos)
-.venv/bin/python3 src/cli.py dijkstra SBGR SBRF
+---
 
-# Menor caminho — Bellman-Ford (suporta pesos negativos)
-.venv/bin/python3 src/cli.py bellman-ford SBGR SBRF
+## 4. Frontend
 
-# Calcular rotas em lote a partir de data/airports/rotas.csv → out/distancias_rotas.csv
-.venv/bin/python3 src/cli.py routes
-```
+> Requer que `frontend/public/graph.json` tenha sido gerado pelo pipeline de aeroportos (`make all`).
 
-## Testes
+| Mac / Linux | Windows |
+|---|---|
+| `make frontend` | `.\make.bat frontend` |
 
-### Backend — Python (35 testes)
+Sobe o Next.js em `http://localhost:3000`.
 
-```bash
-.venv/bin/python3 -m pytest tests/
-```
+---
 
-Cobre BFS, DFS, Dijkstra, Bellman-Ford e geração de árvore de percurso.
+## 5. Pipeline Wikipedia
 
-### Frontend — TypeScript / Jest (40 testes)
-
-```bash
-cd frontend
-npm install -D ts-node
-npm test
-```
-
-Cobre os mesmos algoritmos implementados em TypeScript: BFS, DFS, Dijkstra e Bellman-Ford.
-
-## Frontend
-
-```bash
-#(MAC)
-make frontend
-#(WINDOWS)
-.\make.bat frontend
-```
-
-Requer que `frontend/public/graph.json` tenha sido gerado via `python3 src/cli.py solve`.
-
-## Pipeline Wikipedia
-
-O grafo interativo da Wikipedia é gerado a partir de `data/wikipedia/pages_export.csv` e `data/wikipedia/links_export.csv`.
+Gera o grafo interativo da Wikipedia a partir de `data/wikipedia/pages_export.csv` e `data/wikipedia/links_export.csv`.
 
 ### Extração do dataset (apenas na primeira vez)
 
 O dataset está dividido em dois arquivos (`wikipedia.zip` + `wikipedia.z01`).
 
-**Mac/Linux** — o Makefile extrai automaticamente:
-```bash
-make wiki
-```
+**Mac/Linux** — extração automática pelo Makefile:
 
-**Windows** — extraia manualmente com [7-Zip](https://www.7-zip.org/) antes de rodar o pipeline:
-1. Clique com o botão direito em `wikipedia.zip` → 7-Zip → Extrair aqui
-2. Mova a pasta `wikipedia/` para dentro de `data/`
-3. Execute o pipeline:
-```bash
-.\make.bat wiki
-```
+| Mac / Linux | Windows |
+|---|---|
+| `make wiki` | Ver abaixo |
 
-### Etapas do pipeline
+**Windows** — extração manual antes de rodar o pipeline:
+1. Instale o [7-Zip](https://www.7-zip.org/) (`winget install 7zip.7zip`)
+2. Clique com o botão direito em `wikipedia.zip` → 7-Zip → Extrair aqui
+3. Mova a pasta `wikipedia/` para dentro de `data/`
+4. Execute: `.\make.bat wiki`
 
-```bash
-make wiki-clean      # filtra links internos e calcula 2-core → data/wikipedia/clean_*.csv
-make wiki-build      # seleciona top-400 vértices por grau    → data/wikipedia/nodes.csv + edges.csv
-make wiki-layout     # posições na esfera de Fibonacci         → data/wikipedia/layout.csv
-make wiki-export     # exporta grafo estático                  → frontend/public/wiki_graph.json
-make wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
-make wiki-viz        # gera relatório e visualizações Parte 2  → out/parte2_*
+### Etapas individuais
 
-.\make.bat wiki-clean      # filtra links internos e calcula 2-core → data/wikipedia/clean_*.csv
-.\make.bat wiki-build      # seleciona top-400 vértices por grau    → data/wikipedia/nodes.csv + edges.csv
-.\make.bat wiki-layout     # posições na esfera de Fibonacci         → data/wikipedia/layout.csv
-.\make.bat wiki-export     # exporta grafo estático                  → frontend/public/wiki_graph.json
-.\make.bat wiki-adjacency  # exporta mapa de adjacência e metadados  → frontend/public/wiki_adjacency.json
-.\make.bat wiki-viz        # gera relatório e visualizações Parte 2  → out/parte2_*
+| Etapa | Mac / Linux | Windows | O que faz |
+|---|---|---|---|
+| Limpeza | `make wiki-clean` | `.\make.bat wiki-clean` | Filtra links internos e calcula 2-core → `data/wikipedia/clean_*.csv` |
+| Grafo | `make wiki-build` | `.\make.bat wiki-build` | Seleciona top-400 vértices por grau → `nodes.csv` + `edges.csv` |
+| Layout | `make wiki-layout` | `.\make.bat wiki-layout` | Posições na esfera de Fibonacci → `layout.csv` |
+| Exportação | `make wiki-export` | `.\make.bat wiki-export` | Exporta grafo estático → `frontend/public/wiki_graph.json` |
+| Adjacência | `make wiki-adjacency` | `.\make.bat wiki-adjacency` | Exporta mapa de adjacência → `frontend/public/wiki_adjacency.json` |
+| Visualizações | `make wiki-viz` | `.\make.bat wiki-viz` | Gera relatório e gráficos → `out/parte2_*` |
 
-```
+> `wiki_adjacency.json` (~14 MB) está no `.gitignore`. Após clonar, rode `make wiki-adjacency` para recriá-lo.
 
-> **Nota:** `frontend/public/wiki_adjacency.json` (~14 MB) está no `.gitignore` por ser um arquivo grande e gerado. Após clonar o repositório, rode `make wiki-adjacency` (ou `make wiki` completo) para recriá-lo. Os demais arquivos (`wiki_graph.json`, `wiki_pages.json`) estão versionados e não precisam ser regerados.
+**Arquivos gerados em `out/`:**
 
-Saídas analíticas da Parte 2 geradas em `out/`:
-- `parte2_report.json` — resumo do dataset, execuções de BFS/DFS/Dijkstra/Bellman-Ford e tempos.
-- `parte2_distribuicao_graus.png` — distribuição de graus do subgrafo Wikipedia.
-- `parte2_hubs_brutos_vs_tematicos.png` — comparação entre hubs brutos e hubs filtrados.
-- `parte2_tempos_algoritmos.png` — comparação visual de desempenho dos algoritmos.
-- `parte2_bfs_camadas.png` — camadas BFS a partir de uma fonte temática.
-- `parte2_heatmap_distancias.png` — custos de Dijkstra entre hubs temáticos.
-- `parte2_notas_analiticas.md` — notas interpretativas para apoiar o PDF/apresentação.
+- `parte2_report.json` — resumo do dataset e tempos de execução dos algoritmos
+- `parte2_distribuicao_graus.png` — distribuição de graus do subgrafo Wikipedia
+- `parte2_hubs_brutos_vs_tematicos.png` — comparação entre hubs brutos e hubs filtrados
+- `parte2_tempos_algoritmos.png` — comparação visual de desempenho dos algoritmos
+- `parte2_bfs_camadas.png` — camadas BFS a partir de uma fonte temática
+- `parte2_heatmap_distancias.png` — custos de Dijkstra entre hubs temáticos
+- `parte2_notas_analiticas.md` — notas interpretativas para apoiar o PDF/apresentação
+
+---
+
+## 6. Testes
+
+### Backend — Python (35 testes)
+
+| Mac / Linux | Windows |
+|---|---|
+| `.venv/bin/python3 -m pytest tests/` | `.venv\Scripts\python -m pytest tests\` |
+
+Cobre BFS, DFS, Dijkstra, Bellman-Ford e geração de árvore de percurso.
+
+### Frontend — TypeScript / Jest (40 testes)
+
+| Mac / Linux | Windows |
+|---|---|
+| `cd frontend && npm test` | `cd frontend && npm test` |
+
+Cobre os mesmos algoritmos implementados em TypeScript: BFS, DFS, Dijkstra e Bellman-Ford.
