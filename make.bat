@@ -2,7 +2,7 @@
 setlocal
 
 :: ==========================================
-:: CONFIGURAÇÕES DO PROJETO
+:: CONFIGURACOES DO PROJETO
 :: ==========================================
 set SCRIPTS=src\airports_pipeline
 set WIKI=src\wikipedia_pipeline
@@ -11,7 +11,7 @@ set VENV_PYTHON=%VENV%\Scripts\python.exe
 set VENV_PIP=%VENV%\Scripts\pip.exe
 
 :: ==========================================
-:: MÁQUINA DE ESTADOS DO SCRIPT (Argumentos)
+:: MAQUINA DE ESTADOS DO SCRIPT (Argumentos)
 :: ==========================================
 if "%~1"=="" goto help
 if /I "%~1"=="help" goto help
@@ -36,7 +36,7 @@ echo Comando desconhecido: %1
 goto help
 
 :: ==========================================
-:: IMPLEMENTAÇÃO DOS COMANDOS
+:: IMPLEMENTACAO DOS COMANDOS
 :: ==========================================
 
 :venv
@@ -91,7 +91,6 @@ call :validate
 call :edges
 call :check
 call :solve
-echo.
 echo === Pipeline de Aeroportos Concluido! ===
 goto :eof
 
@@ -102,4 +101,79 @@ echo Limpando dataset da Wikipedia...
 goto :eof
 
 :wiki_build
-call
+call :venv
+echo Construindo nodes e edges do top 400...
+"%VENV_PYTHON%" %WIKI%\graph_builder.py
+goto :eof
+
+:wiki_layout
+call :venv
+echo Calculando posicoes na esfera 3D...
+"%VENV_PYTHON%" %WIKI%\layout_builder.py
+goto :eof
+
+:wiki_export
+call :venv
+echo Exportando wiki_graph.json...
+"%VENV_PYTHON%" %WIKI%\graph_exporter.py
+goto :eof
+
+:wiki_adjacency
+call :venv
+echo Construindo adjacencias e scores (wiki_pages.json)...
+"%VENV_PYTHON%" %WIKI%\adjacency_builder.py
+goto :eof
+
+:wiki_viz
+call :venv
+echo Gerando relatorio e visualizacoes da Parte 2...
+"%VENV_PYTHON%" %WIKI%\wiki_viz.py
+goto :eof
+
+:wiki
+echo Iniciando pipeline completo da Wikipedia...
+call :wiki_clean
+call :wiki_build
+call :wiki_layout
+call :wiki_export
+call :wiki_adjacency
+call :wiki_viz
+echo === Pipeline da Wikipedia Concluido! ===
+goto :eof
+
+:frontend
+echo Iniciando Frontend Next.js...
+cd frontend
+if not exist "node_modules\" (
+    echo Instalando dependencias do frontend...
+    npm install
+)
+npm run dev
+goto :eof
+
+:help
+echo.
+echo =============== MENU DE COMANDOS =================
+echo Uso: .\make.bat [comando]
+echo.
+echo Comandos Aeroportos:
+echo   .\make.bat parse      - limpa o dataset bruto
+echo   .\make.bat regions    - constroi os vertices
+echo   .\make.bat validate   - verifica cobertura
+echo   .\make.bat edges      - constroi as arestas
+echo   .\make.bat check      - extrai fluxo regional
+echo   .\make.bat solve      - gera JSONs finais
+echo   .\make.bat all        - Roda todo o pipeline
+echo.
+echo Comandos Wikipedia:
+echo   .\make.bat wiki-clean - limpa links e calcula core
+echo   .\make.bat wiki-build - seleciona top 400
+echo   .\make.bat wiki-layout- calcula 3D positions
+echo   .\make.bat wiki-export- exporta json 3D
+echo   .\make.bat wiki-adjacency - exporta scores para UI
+echo   .\make.bat wiki-viz   - gera relatorio e visualizacoes Parte 2
+echo   .\make.bat wiki       - Roda todo o pipeline da Wikipedia
+echo.
+echo Frontend:
+echo   .\make.bat frontend   - Inicia o Next.js
+echo ==================================================
