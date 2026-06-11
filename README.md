@@ -55,13 +55,13 @@ Executar da **raiz do projeto** com o venv já criado.
 
 | Comando | Mac / Linux | Windows |
 |---|---|---|
-| Gerar todos os outputs | `.venv/bin/python3 src/cli.py solve` | `.venv\Scripts\python src\cli.py solve` |
-| BFS a partir de um aeroporto | `.venv/bin/python3 src/cli.py bfs SBGR` | `.venv\Scripts\python src\cli.py bfs SBGR` |
-| DFS a partir de um aeroporto | `.venv/bin/python3 src/cli.py dfs SBBR` | `.venv\Scripts\python src\cli.py dfs SBBR` |
-| DFS em todo o grafo | `.venv/bin/python3 src/cli.py dfs` | `.venv\Scripts\python src\cli.py dfs` |
-| Dijkstra entre dois aeroportos | `.venv/bin/python3 src/cli.py dijkstra SBGR SBRF` | `.venv\Scripts\python src\cli.py dijkstra SBGR SBRF` |
-| Bellman-Ford entre dois aeroportos | `.venv/bin/python3 src/cli.py bellman-ford SBGR SBRF` | `.venv\Scripts\python src\cli.py bellman-ford SBGR SBRF` |
-| Calcular rotas em lote | `.venv/bin/python3 src/cli.py routes` | `.venv\Scripts\python src\cli.py routes` |
+| Gerar todos os outputs | `.venv/bin/python3 src/cli.py solve` | `python src\cli.py solve` |
+| BFS a partir de um aeroporto | `.venv/bin/python3 src/cli.py bfs SBGR` | `python src\cli.py bfs SBGR` |
+| DFS a partir de um aeroporto | `.venv/bin/python3 src/cli.py dfs SBBR` | `python src\cli.py dfs SBBR` |
+| DFS em todo o grafo | `.venv/bin/python3 src/cli.py dfs` | `python src\cli.py dfs` |
+| Dijkstra entre dois aeroportos | `.venv/bin/python3 src/cli.py dijkstra SBGR SBRF` | `python src\cli.py dijkstra SBGR SBRF` |
+| Bellman-Ford entre dois aeroportos | `.venv/bin/python3 src/cli.py bellman-ford SBGR SBRF` | `python src\cli.py bellman-ford SBGR SBRF` |
+| Calcular rotas em lote | `.venv/bin/python3 src/cli.py routes` | `python src\cli.py routes` |
 
 > `routes` lê `data/airports/rotas.csv` e exporta resultados em `out/distancias_rotas.csv`.
 
@@ -130,14 +130,16 @@ O dataset está dividido em dois arquivos (`wikipedia.zip` + `wikipedia.z01`).
 
 | Mac / Linux | Windows |
 |---|---|
-| `.venv/bin/python3 -m pytest tests/` | `.venv\Scripts\python -m pytest tests\` |
+| `.venv/bin/python3 -m pytest tests/` | `python -m pytest tests\` |
 
 Cobre BFS, DFS, Dijkstra, Bellman-Ford e geração de árvore de percurso.
 
 ### Frontend — TypeScript / Jest (40 testes)
 
-| Mac / Linux | Windows |
-|---|---|
-| `cd frontend && npm test` | `cd frontend && npm test` |
+```bash
+cd frontend
+npm install -D ts-node   # apenas na primeira vez
+npm test
+```
 
 Cobre os mesmos algoritmos implementados em TypeScript: BFS, DFS, Dijkstra e Bellman-Ford.
