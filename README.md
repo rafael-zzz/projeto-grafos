@@ -88,6 +88,7 @@ Cobre BFS, DFS, Dijkstra, Bellman-Ford e geração de árvore de percurso.
 
 ```bash
 cd frontend
+npm install -D ts-node
 npm test
 ```
 
